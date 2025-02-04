@@ -1,11 +1,10 @@
 import * as THREE from '/static/js/three.js-master/build/three.module.js';
 
-// Targeting the specific canvas for particles
 const particleCanvas = document.getElementById('particleCanvas');
 const renderer = new THREE.WebGLRenderer({ canvas: particleCanvas, alpha: true }); // Use the existing canvas
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setClearColor(0x000000, 0); // Transparent background
+renderer.setClearColor(0x000000, 0);
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -18,11 +17,11 @@ const particles = new THREE.BufferGeometry();
 const positions = new Float32Array(particleCount * 3);
 const velocities = new Float32Array(particleCount * 3);
 
-// Screen bounds
+// screen bounds
 const screenWidth = window.innerWidth / 100;
 const screenHeight = window.innerHeight / 100;
 
-// Initialize particle positions and velocities
+// particle positions and velocities
 for (let i = 0; i < particleCount; i++) {
     positions[i * 3] = (Math.random() - 0.5) * screenWidth * 2;
     positions[i * 3 + 1] = (Math.random() - 0.5) * screenHeight * 2;
