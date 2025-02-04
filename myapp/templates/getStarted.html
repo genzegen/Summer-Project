@@ -1,0 +1,73 @@
+    {% load static %}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BYR3D | Get Started</title>
+        <link rel="stylesheet" href="{% static 'css/getStarted.css' %}">
+        <script type="module" src="/static/js/three.js-master/build/three.module.js?v=1.0"></script>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                height: 100vh;
+                background-image: radial-gradient(circle, #381d15, #6b4234, #14283a, #1a1129);
+                background-size: cover;
+            }
+
+            #particleCanvas {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -1;
+                pointer-events: none;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="particleCanvas"></canvas>
+
+        <div class="container">
+            <div class="main">
+                <div class="for-image">
+                    <img src="{% static 'images/getstarted.jpg' %}" style="border-radius: 5%; width: 90%; height: auto; align-self: center;">
+                    <img src="{% static 'images/logo.png' %}" style="width: 40%; height: auto; align-self: center;">
+                </div>
+                <div class="login-register">
+                    <!-- Login Form -->
+                    <form id="loginForm" method="POST" action="{% url 'getStarted' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_type" value="login">
+                        <input type="text" name="username" placeholder="Username" required>
+                        <input type="password" name="password" placeholder="Password" required>
+                        <button type="submit">Login</button>
+                    </form>
+
+                    <!-- Register Form (Hidden by Default) -->
+                    <form id="registerForm" method="POST" action="{% url 'getStarted' %}" style="display: none;">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_type" value="register">
+                        <input type="text" name="username" placeholder="Username" required>
+                        <input type="email" name="email" placeholder="Email" required>
+                        <input type="password" name="password1" placeholder="Password" required>
+                        <input type="password" name="password2" placeholder="Confirm Password" required>
+                        <button type="submit">Register</button>
+                    </form>
+
+                    <!-- Switch between Login and Register -->
+                    <p class="switch-text">
+                        <span id="toggleFormText">Don't have an account?</span>
+                        <a id="toggleFormLink" onclick="toggleForms()">Register here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <script type="module" src="{% static 'js/home.js' %}"></script>
+        <script src="{% static 'js/getStarted.js' %}"></script>
+    </body>
+    </html>

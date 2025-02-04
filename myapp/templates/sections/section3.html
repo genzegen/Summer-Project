@@ -1,0 +1,62 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/sections/section3.css' %}">
+<section class="page tutorial">
+    <div class="section3-main">
+        <div class="title-how-to"> 
+            <div class="logo">
+                <img src="{% static 'images/logo.png' %}">
+            </div>
+            How to use our platform?<br>Here are some easy steps to follow
+        </div>
+        <div class="steps-scroll-container">
+            <div class="steps-scroll">
+                <div class="stepTitle">Start Your Canvas</div>
+                <div class="stepDetails">
+                    <ul>
+                        <li>Pick your dimensions</li>
+                        <li>Set your preferred grid size</li>
+                        <li>Start adding elements to your design</li>
+                    </ul>
+                    <img src="{% static 'images/step1.gif' %}">
+                </div>
+            </div>
+
+            <div class="steps-scroll">
+                <div class="stepTitle">Drop and Drag</div>
+                <div class="stepDetails">
+                    <ul>
+                        <li>Click and drag to move elements</li>
+                        <li>Hold shift for precise movements</li>
+                        <li>Release to place the element on the canvas</li>
+                    </ul>
+                    <img src="{% static 'images/step2.gif' %}">
+                </div>
+            </div>
+
+            <div class="steps-scroll">
+                <div class="stepTitle">Shape Your Space</div>
+                <div class="stepDetails">
+                    <ul>
+                        <li>Place elements by dropping on desired location</li>
+                        <li>Rotate by clicking and dragging the rotation handle</li>
+                        <li>Use the tools to fine-tune your shapes</li>
+                    </ul>
+                    <img src="{% static 'images/step3.gif' %}">
+                </div>
+            </div>
+
+            <div class="steps-scroll">
+                <div class="stepTitle">Visualize and Save</div>
+                <div class="stepDetails">
+                    <ul>
+                        <li>Preview your design</li>
+                        <li>Make any final adjustments</li>
+                        <li>Click "Save" to store your design</li>
+                    </ul>
+                    <img src="{% static 'images/step4.gif' %}">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'js/sections/section3.js' %}"></script>
+</section>

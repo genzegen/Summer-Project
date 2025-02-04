@@ -1,0 +1,148 @@
+/* Ensure full viewport coverage */
+.section4-main {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Flex container for content */
+.section4-contents {
+    margin: 2%;
+    width: 90%;
+    height: 80vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    gap: 2vw;
+    background-color: rgba(255, 209, 209, 0.363);
+    backdrop-filter: blur(2px);
+    border-radius: 30% / 100%;
+    border: 2px solid white;
+}
+
+/* Text and button container */
+.getStarted {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4vh;
+}
+
+/* Title styling */
+.joinToday {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: 2.2rem;
+    color: white;
+    text-align: center;
+    max-width: 90%;
+}
+
+/* Button styling */
+.button-18 {
+    width: 14vw;
+    max-width: 200px;
+    min-width: 120px;
+    align-items: center;
+    background-color: #c35fe2;
+    border: none;
+    border-radius: 100px;
+    box-sizing: border-box;
+    color: #ffffff;
+    cursor: pointer;
+    display: inline-flex;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    justify-content: center;
+    padding: 12px 24px;
+    text-align: center;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    vertical-align: middle;
+}
+
+/* Button Hover Effects */
+.button-18:hover,
+.button-18:focus { 
+    background-color: #b14bcd;
+    color: #ffffff;
+    box-shadow: 0px 4px 10px rgba(195, 95, 226, 0.3);
+}
+
+/* Button Active State */
+.button-18:active {
+    background: #742b74;
+    color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0px 2px 8px rgba(116, 43, 116, 0.5);
+}
+
+/* Disabled Button */
+.button-18:disabled { 
+    cursor: not-allowed;
+    background: rgba(0, 0, 0, 0.1);
+    color: rgba(0, 0, 0, 0.4);
+}
+
+/* For modelCanvas */
+.forModelCanvas {
+    width: 40vw;
+    height: 70vh;
+    /* border: 1px solid white; */
+}
+
+/* Canvas styling (for the 3D model) */
+#modelCanvas {
+    width: 100%;
+    height: 100%;
+}
+
+.byred-details{
+  width: 90%;
+  height: 15vh;
+  padding: 1%;
+  border-top: 1px solid white;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.find-us{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-size: 1rem;
+  color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .section4-contents {
+        flex-direction: column;
+        height: auto;
+        gap: 3vh;
+    }
+
+    .getStarted {
+        width: 80%;
+        text-align: center;
+    }
+
+    .button-18 {
+        width: 60%;
+        font-size: 1.2rem;
+        padding: 10px 20px;
+    }
+
+    /* Make canvas responsive */
+    #modelCanvas {
+        width: 90vw;
+        height: 45vh;
+    }
+}

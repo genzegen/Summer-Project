@@ -1,0 +1,30 @@
+<section class="page intro">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/sections/section1.css' %}">
+    <div class="intro-main">
+        <div class="intro-body">
+            <div class="logo">
+                <img src="{% static 'images/logo.png' %}" alt="Logo">
+            </div>
+            <div class="contents">
+                <a style="text-decoration: none;" href="{% url 'getStarted' %}" class="button">Try it</a>
+                <a style="text-decoration: none;" href="{% url 'about' %}" class="button">About</a>
+                <a style="text-decoration: none;" href="{% url 'about' %}" class="button">Discover</a>
+                <a style="text-decoration: none;" href="{% url 'about' %}" class="button">Contact</a>
+                <a style="text-decoration: none;" href="{% url 'about' %}" class="button">Help</a>
+            </div>
+        </div>
+        <div class="details">
+            <div class="visualize">
+                <div class="title">Visualize Your</div>
+                <div class="room">Room</div>
+                <div class="what-we-do">---- What we do</div>
+                <div class="lil-intro">We provide an innovative platform that empowers both professionals and everyday users to bring their dream spaces to life through visualization.</div>
+                <a style="text-decoration: none;" id="learn-more" href="{% url 'about' %}">Learn More</a>
+            </div>
+            <div class="room-image">
+                <img src="{% static 'images/room-img.png' %}" alt="" srcset="">
+            </div>
+        </div>
+    </div>
+</section>

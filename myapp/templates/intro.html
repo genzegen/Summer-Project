@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BYR3D | Welcome</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <script type="module" src = "/static/js/three.js-master/build/three.module.js?v=1.0" %}"></script>
+
+    <style>
+        /* Body styling: Background image for the page */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            background-image: radial-gradient(circle, #4d291d, #855647, #1f364b, #281c3c);
+        }
+        /* Canvas styling: Fills the screen and stays behind the content */
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Keeps canvas behind other content */
+            pointer-events: none; /* Prevents interaction with the canvas */
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle Background -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Main Content -->
+    <div class="main">
+        {% include "sections/section1.html" %}
+        {% include "sections/section2.html" %}
+        {% include "sections/section3.html" %}
+        {% include "sections/section4.html" %}
+    </div>
+
+    
+    <script type="module" src="{% static 'js/home.js' %}"></script>
+    <script type="module" src="{% static 'js/sections/section4.js' %}"></script>
+</body>
+</html>

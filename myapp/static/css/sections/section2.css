@@ -1,0 +1,66 @@
+.second-main{
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.second-main-body {
+    margin: 5%;
+    width: 80%;
+    height: 70vh;
+    /* border: 1px solid white; */
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+.spinning-cube{
+    margin-left: 5vw;
+    /* border: 1px solid white; */
+    width: 50%;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+#spinCubeCanvas{
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 0;
+    background: transparent;
+}
+.think-outside-box{
+    /* border: 1px solid white; */
+    width: 50%;
+    padding: 2%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+}
+.thinkoutside-title{
+    margin: 2% 0;
+    width: 30vw;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    color: white;
+    font-size: 2.5rem;
+    text-shadow: 1px 1px 2px black;
+}
+.what-to-do{
+    margin: 2% 0;
+    width: 30vw;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    color: #e25fe2;
+    font-size: 1.5rem;
+    text-shadow: 1px 1px 2px black;
+}
+.can-do{
+    width: 25vw;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    color: white;
+    font-size: 1.25rem;
+    text-shadow: 1px 1px 0px black;
+}

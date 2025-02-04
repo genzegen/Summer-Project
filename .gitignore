@@ -1,0 +1,10 @@
+# virtual environment
+myenv/
+
+# compiled python files
+*.pyc
+*.pyo
+__pycache__/
+
+# sqlite db
+db.sqlite3

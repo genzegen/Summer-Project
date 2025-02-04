@@ -1,0 +1,19 @@
+.main {
+    scroll-snap-type: y mandatory;
+    height: 100vh;
+    overflow-y: scroll;
+    scrollbar-width: none;
+}
+.main::-webkit-scrollbar {
+    display: none;
+}
+
+.page {
+    scroll-snap-align: start;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+}
