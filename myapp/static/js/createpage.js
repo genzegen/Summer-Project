@@ -36,6 +36,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const gridBtn = document.getElementById("grid-btn");
     const gridDropdown = document.getElementById("grid-dropdown");
 
+    const colorBtn = document.getElementById("color-btn");
+    const colorDropdown = document.getElementById("color-dropdown");
+
     // Dropdown Toggle Function
     function toggleDropdown(button, dropdown) {
         const isActive = dropdown.classList.contains("show");
@@ -58,6 +61,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         gridDropdown.classList.remove("show");
         gridBtn.classList.remove("active");
+
+        colorDropdown.classList.remove("show");
+        colorBtn.classList.remove("active");
     }
 
     // Button Click Events
@@ -76,6 +82,11 @@ document.addEventListener("DOMContentLoaded", function () {
         toggleDropdown(gridBtn, gridDropdown);
     });
 
+    colorBtn.addEventListener("click", function (event) {
+        event.stopPropagation();
+        toggleDropdown(colorBtn, colorDropdown);
+    });
+
     // Close dropdowns when clicking outside
     window.addEventListener("click", function (event) {
         if (
@@ -84,7 +95,9 @@ document.addEventListener("DOMContentLoaded", function () {
             !importBtn.contains(event.target) &&
             !furnitureDropdown.contains(event.target) &&
             !gridBtn.contains(event.target) &&
-            !gridDropdown.contains(event.target)
+            !gridDropdown.contains(event.target) &&
+            !colorBtn.contains(event.target) &&
+            !colorDropdown.contains(event.target)
         ) {
             closeAllDropdowns();
         }

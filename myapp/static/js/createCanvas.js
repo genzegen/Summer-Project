@@ -83,19 +83,88 @@ document.addEventListener("DOMContentLoaded", function() {
         roomGrid = new THREE.LineSegments(gridGeometry, gridMaterial);
         createScene.add(roomGrid);
     }
-    document.addEventListener("DOMContentLoaded", function() {
-        const gridToggle = document.getElementById("grid-toggle");
-        const gridStatus = document.getElementById("grid-status");
 
-        gridToggle.checked = !gridToggle.checked;
-        gridToggle.addEventListener ("change", function () {
-            if (gridToggle.checked) {
-                gridStatus.textContent = "Turn ON the grid";
-            } else {
-                gridStatus.textContent = "Turn OFF the grid";
+    // undo and redo block
+    const undoStack = [];
+    const redoStack = [];
+
+    // saving current displayed state
+    function saveState() {
+        let sceneSnapshot = createScene.children
+        .filter(obj => obj instanceof THREE.Mesh && obj.geometry)
+        .map(object => ({
+            name: object.name || "Unnamed",
+            geometry: object.geometry ? object.geometry.clone() : null,
+            material: object.material ? object.material.clone() : null,
+            position: object.position.clone(),
+        }));
+
+        console.log("Saving state:", sceneSnapshot);
+        undoStack.push(sceneSnapshot);
+        redoStack.length = 0; // firstly there shouldnt be redo
+    }
+
+    // undo function
+    function restoreState(snapshot) {
+        //removing everything first
+        if (!snapshot || snapshot.length === 0) return;  // ✅ Prevent errors if snapshot is empty
+
+        // ✅ Remove only meshes from the scene
+        createScene.children
+            .filter(obj => obj instanceof THREE.Mesh) // ✅ Ensure we only remove meshes
+            .forEach(obj => createScene.remove(obj)); // ✅ Correct way to remove objects
+
+        snapshot.forEach(savedObject => {
+            if (savedObject.geometry && savedObject.material) { // ✅ Ensure geometry & material exist
+                const restoredObject = new THREE.Mesh(
+                    savedObject.geometry.clone(),  // ✅ Clone to prevent reference issues
+                    savedObject.material.clone()
+                );
+                restoredObject.position.copy(savedObject.position);
+                restoredObject.name = savedObject.name;
+                createScene.add(restoredObject);
             }
-        })
-    });
+        });
+
+        createRenderer.render(createScene, createCamera);
+    }
+
+    // undo action
+    document.getElementById("undo-btn").addEventListener("click", function () {
+        if (undoStack.length > 0) {
+            const previousState = undoStack.pop();
+            redoStack.push(createScene.children
+                .filter(obj => obj instanceof THREE.Mesh) // ✅ Only store meshes
+                .map(obj => ({
+                    name: obj.name,
+                    geometry: obj.geometry.clone(),
+                    material: obj.material.clone(),
+                    position: obj.position.clone(),
+                }))
+            );
+            console.log("Snapshot restored: ", previousState);
+            restoreState(previousState);
+        }
+    })
+
+    // redo action
+    document.getElementById("redo-btn").addEventListener("click", function () {
+        if (redoStack.length > 0) {
+            const nextState = redoStack.pop();
+            undoStack.push(createScene.children
+                .filter(obj => obj instanceof THREE.Mesh) // ✅ Only store meshes
+                .map(obj => ({
+                    name: obj.name,
+                    geometry: obj.geometry.clone(),
+                    material: obj.material.clone(),
+                    position: obj.position.clone(),
+                }))
+            );
+            console.log("Snapshot restored: ", nextState);
+            restoreState(nextState);
+        }
+    })
+
 
     // square or rectangle room
     const squareBtn = document.getElementById('square-btn');
@@ -131,18 +200,57 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    const wallColorInput = document.getElementById("wall-color");
+    let selectedWallColor = wallColorInput.value;
+    
+    wallColorInput.addEventListener("input", function () {
+        saveState();
+
+        const newColor = new THREE.Color(wallColorInput.value);
+
+        createScene.children.forEach((object) => {
+            if (object.isMesh && object.material && object.material.color) {
+                if (object.name.includes("wall")) {
+                    object.material.color.set(newColor);
+                }
+            }
+        });
+        console.log("New color changed");
+    });
+
+    const floorColorInput = document.getElementById("floor-color");
+    let selectedFloorColor = wallColorInput.value;
+    
+    floorColorInput.addEventListener("input", function () {
+        saveState();
+
+        const newColor = new THREE.Color(floorColorInput.value);
+
+        createScene.children.forEach((object) => {
+            if (object.isMesh && object.material && object.material.color) {
+                if (object.name.includes("floor")) {
+                    object.material.color.set(newColor);
+                }
+            }
+        });
+        console.log("New color changed");
+    });
+
     // square room
     function createSquareRoom() {
+        saveState();
+
         const roomSize = 30;
         const roomHeight = 16;
 
         const floor = new THREE.Mesh(
             new THREE.BoxGeometry(roomSize, 1, roomSize),
-            new THREE.MeshBasicMaterial({ color: 0x998970 })
+            new THREE.MeshBasicMaterial({ color: new THREE.Color(floorColorInput.value) })
         );
         floor.position.set(0, 1.5, 0);
+        floor.name = "floor";
 
-        const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xe7cfb4 });
+        const wallMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(wallColorInput.value) });
 
         const walls = [
             new THREE.Mesh(new THREE.BoxGeometry(roomSize, roomHeight, 1), wallMaterial),  // Back Wall
@@ -154,6 +262,10 @@ document.addEventListener("DOMContentLoaded", function() {
         walls[1].position.set(-roomSize / 2 - .5, roomHeight / 2 + 1, 0); // Left wall
         walls[2].position.set(roomSize / 2 + .5, roomHeight / 2 + 1, 0);  // Right wall
 
+        walls[0].name = "wall-back";
+        walls[1].name = "wall-left";
+        walls[2].name = "wall-right";
+
         createScene.add(floor, ...walls);
         createRoomGrid(roomSize, roomSize);
         console.log('Square room created!');
@@ -161,17 +273,20 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // rectangle
     function createRectangleRoom() {
+        saveState();
+
         const length = 40;
         const width = 25;
         const roomHeight = 16;
 
         const floor = new THREE.Mesh(
             new THREE.BoxGeometry(length, 1, width),
-            new THREE.MeshBasicMaterial({ color: 0x998970 })
+            new THREE.MeshBasicMaterial({ color: new THREE.Color(floorColorInput.value) })
         );
         floor.position.set(0, 1.5, 0);
+        floor.name = "floor";
 
-        const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xe7cfb4 });
+        const wallMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(wallColorInput.value) });
 
         const walls = [
             new THREE.Mesh(new THREE.BoxGeometry(length, roomHeight, 1), wallMaterial),  // Back Wall
@@ -183,17 +298,36 @@ document.addEventListener("DOMContentLoaded", function() {
         walls[1].position.set(-length / 2 - .5, roomHeight / 2 + 1, 0); // Left wall
         walls[2].position.set(length / 2 + .5, roomHeight / 2 + 1, 0);  // Right wall
 
+        walls[0].name = "wall-back";
+        walls[1].name = "wall-left";
+        walls[2].name = "wall-right";
+
         createScene.add(floor, ...walls);
         createRoomGrid(length, width);
         console.log('Rectangle room created!');
     }
+    const gridToggle = document.getElementById("grid-toggle");
+    const gridStatus = document.getElementById("grid-status");
+
+    gridToggle.checked = !gridToggle.checked;
+    gridToggle.addEventListener ("change", function () {
+        if (gridToggle.checked) {
+            gridStatus.textContent = "Turn off the grid";
+            if (roomGrid) createScene.add(roomGrid);
+            console.log("ON");
+        } else {
+            gridStatus.textContent = "Turn on the grid";
+            console.log("OFF");
+            if (roomGrid) createScene.remove(roomGrid);
+        }
+    });
 
     // **Lighting**
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     createScene.add(ambientLight);
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
-    directionalLight.position.set(-13, 15, -40);
+    directionalLight.position.set(-13, 18, -40);
     createScene.add(directionalLight);
 
     // **Set Camera Position**
