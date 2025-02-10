@@ -91,33 +91,37 @@ document.addEventListener("DOMContentLoaded", function() {
     // saving current displayed state
     function saveState() {
         let sceneSnapshot = createScene.children
-        .filter(obj => obj instanceof THREE.Mesh && obj.geometry)
-        .map(object => ({
-            name: object.name || "Unnamed",
-            geometry: object.geometry ? object.geometry.clone() : null,
-            material: object.material ? object.material.clone() : null,
-            position: object.position.clone(),
-        }));
+            .filter(obj => obj instanceof THREE.Mesh && obj.geometry)
+            .map(object => ({
+                name: object.name || "Unnamed",
+                geometry: object.geometry ? object.geometry.clone() : null,
+                material: object.material ? object.material.clone() : null,
+                position: object.position.clone(),
+            }));
 
-        console.log("Saving state:", sceneSnapshot);
-        undoStack.push(sceneSnapshot);
+        let colorState = {
+            wallColor: document.getElementById("wall-color").value,
+            floorColor: document.getElementById("floor-color").value,
+        }
+
+        console.log("Saving state:", sceneSnapshot, colorState);
+        undoStack.push({scene: sceneSnapshot, colors: colorState});
         redoStack.length = 0; // firstly there shouldnt be redo
     }
 
     // undo function
     function restoreState(snapshot) {
         //removing everything first
-        if (!snapshot || snapshot.length === 0) return;  // ✅ Prevent errors if snapshot is empty
+        if (!snapshot || snapshot.length === 0) return; 
 
-        // ✅ Remove only meshes from the scene
         createScene.children
-            .filter(obj => obj instanceof THREE.Mesh) // ✅ Ensure we only remove meshes
-            .forEach(obj => createScene.remove(obj)); // ✅ Correct way to remove objects
+            .filter(obj => obj instanceof THREE.Mesh)
+            .forEach(obj => createScene.remove(obj));
 
-        snapshot.forEach(savedObject => {
-            if (savedObject.geometry && savedObject.material) { // ✅ Ensure geometry & material exist
+        snapshot.scene.forEach(savedObject => {
+            if (savedObject.geometry && savedObject.material) {
                 const restoredObject = new THREE.Mesh(
-                    savedObject.geometry.clone(),  // ✅ Clone to prevent reference issues
+                    savedObject.geometry.clone(),
                     savedObject.material.clone()
                 );
                 restoredObject.position.copy(savedObject.position);
@@ -126,6 +130,15 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
+        document.getElementById("wall-color").value = snapshot.colors.wallColor;
+        document.getElementById("floor-color").value = snapshot.colors.floorColor;
+
+        wallColorInput.value = snapshot.colors.wallColor;
+        floorColorInput.value = snapshot.colors.floorColor;
+
+        wallColorInput.dispatchEvent(new Event("input", { bubbles: true }));
+        floorColorInput.dispatchEvent(new Event("input", { bubbles: true }));
+
         createRenderer.render(createScene, createCamera);
     }
 
@@ -133,15 +146,20 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("undo-btn").addEventListener("click", function () {
         if (undoStack.length > 0) {
             const previousState = undoStack.pop();
-            redoStack.push(createScene.children
-                .filter(obj => obj instanceof THREE.Mesh) // ✅ Only store meshes
-                .map(obj => ({
-                    name: obj.name,
-                    geometry: obj.geometry.clone(),
-                    material: obj.material.clone(),
-                    position: obj.position.clone(),
-                }))
-            );
+            redoStack.push({
+                scene: createScene.children
+                    .filter(obj => obj instanceof THREE.Mesh)
+                    .map(obj => ({
+                        name: obj.name,
+                        geometry: obj.geometry.clone(),
+                        material: obj.material.clone(),
+                        position: obj.position.clone(),
+                    })),
+                colors: {
+                    wallColor: document.getElementById("wall-color").value,
+                    floorColor: document.getElementById("floor-color").value,
+                }
+            });
             console.log("Snapshot restored: ", previousState);
             restoreState(previousState);
         }
@@ -151,15 +169,20 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("redo-btn").addEventListener("click", function () {
         if (redoStack.length > 0) {
             const nextState = redoStack.pop();
-            undoStack.push(createScene.children
-                .filter(obj => obj instanceof THREE.Mesh) // ✅ Only store meshes
-                .map(obj => ({
-                    name: obj.name,
-                    geometry: obj.geometry.clone(),
-                    material: obj.material.clone(),
-                    position: obj.position.clone(),
-                }))
-            );
+            undoStack.push({
+                scene: createScene.children
+                    .filter(obj => obj instanceof THREE.Mesh)
+                    .map(obj => ({
+                        name: obj.name,
+                        geometry: obj.geometry.clone(),
+                        material: obj.material.clone(),
+                        position: obj.position.clone(),
+                    })),
+                colors: {
+                    wallColor: document.getElementById("wall-color").value,
+                    floorColor: document.getElementById("floor-color").value,
+                }
+            });
             console.log("Snapshot restored: ", nextState);
             restoreState(nextState);
         }
@@ -201,7 +224,6 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     const wallColorInput = document.getElementById("wall-color");
-    let selectedWallColor = wallColorInput.value;
     
     wallColorInput.addEventListener("input", function () {
         saveState();
@@ -219,7 +241,6 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     const floorColorInput = document.getElementById("floor-color");
-    let selectedFloorColor = wallColorInput.value;
     
     floorColorInput.addEventListener("input", function () {
         saveState();

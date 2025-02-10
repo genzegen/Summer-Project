@@ -1,4 +1,6 @@
 function toggleForms() {
+    document.querySelector('.messages')?.remove();
+
     let loginForm = document.getElementById("loginForm");
     let registerForm = document.getElementById("registerForm");
     let toggleText = document.getElementById("toggleFormText");

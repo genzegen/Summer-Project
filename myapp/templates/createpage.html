@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BYR3D | Your Project</title>
     <link rel="stylesheet" href="{% static 'css/createpage.css' %}">
+    <link rel="stylesheet" href="{% static "css/profile.css" %}">
     <script type="module" src="{% static 'js/three.js-master/build/three.module.js' %}"></script>
 </head>
 
@@ -28,6 +29,19 @@
                         <img src="{% static 'images/notification.png' %}" />
                     </button>
                     <button class="nav-button" id="profile-img"></button>
+                    {% if user.is_authenticated %}
+                    <div class="popup" id="profile">
+                    <div class="pop-content">
+                        <button id="close-profile">&#10006;</button>
+                        <div class="profile-img"></div>
+                        <div class="profile-details">
+                        <p style="font-size: 1.5rem;">{{ user.username }}</p>
+                        <p id="about-user">About {{ user.username }}</p>
+                        <button id="logout-btn" class="button" style="width: 14vw; margin-top: 5%;">Go Back &ensp; &#8617;</button>
+                        </div>
+                    </div>
+                    </div>
+                    {% endif %}
                     <button class="button" id="save-btn">Save</button>
                 </div>
             </div>
@@ -90,6 +104,7 @@
     <script type="module" src="{% static 'js/createCanvas.js' %}"></script>
     <script type="module" src="{% static 'js/home.js' %}"></script>
     <script src="{% static 'js/createpage.js' %}"></script>
+    <script src="{% static "js/profile.js" %}"></script>
 </body>
 
 </html>

@@ -62,6 +62,13 @@
                     <p class="switch-text">
                         <span id="toggleFormText">Don't have an account?</span>
                         <a id="toggleFormLink" onclick="toggleForms()">Register here</a>
+                        {% if messages %}
+                            <div class="messages">
+                                    {% for message in messages %}
+                                        <p class+"message">{{ message }}</p>
+                                    {% endfor %}
+                            </div>
+                        {% endif %}
                     </p>
                 </div>
             </div>

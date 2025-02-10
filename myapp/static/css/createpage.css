@@ -95,19 +95,20 @@ body {
     border: none;
     color: white;
     width: 3vw;
-    height: 8vh;
-    padding: 0%;
-    margin: 0%;
-    font-size: 2rem;
+    height: 7vh;
+    font-size: 1.8rem;
     justify-content: center;
+    align-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.116);
+    border-radius: 10px;
 }
 .undo-redo:hover {
     background-color: rgba(255, 255, 255, 0.096);
-    border-radius: 25px;
+    border-radius: 10px;
 }
 .undo-redo:active {
     background-color: rgba(150, 150, 150, 0.096);
-    border-radius: 25px;
+    border-radius: 10px;
 }
 
 .nav-button {

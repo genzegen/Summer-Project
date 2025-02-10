@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
 
@@ -17,6 +17,10 @@ def getStarted(request):
     if request.method == 'POST':
         form_type = request.POST.get('form_type')
 
+        if form_type == 'logout':
+            logout(request)
+            return redirect('getStarted')
+
         if form_type == 'login':
 
             username = request.POST.get('username', '')
@@ -28,7 +32,7 @@ def getStarted(request):
                     login(request, user)
                     return redirect('mainpage')
                 else:
-                    messages.error(request, "Invalid Username or Password!")
+                    messages.error(request, "Invalid Credentials!")
             else:
                 messages.error(request, "Username and Password are required!")
 
@@ -54,7 +58,12 @@ def getStarted(request):
     return render(request, 'getStarted.html')
 
 def home(request):
-    return render(request, "partials/home.html")
+    if request.user.is_authenticated:
+        username = request.user.username
+    else:
+        username = None
+
+    return render(request, "partials/home.html", {'username': username})
 
 def my_projects(request):
     return render(request, "partials/my-projects.html")
@@ -69,4 +78,8 @@ def settings(request):
     return render(request, "partials/settings.html")
 
 def createpage(request):
-    return render(request, "createpage.html")
+    if request.user.is_authenticated:
+        username = request.user.username
+    else:
+        username = None
+    return render(request, "createpage.html", {'username': username})

@@ -98,4 +98,5 @@ document.addEventListener("DOMContentLoaded", function () {
         projTitle.style.border = "";
         projTitle.setAttribute("placeholder", "Project Name");
     });
+
 });

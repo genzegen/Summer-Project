@@ -111,12 +111,19 @@
     cursor: pointer;
 }
 
+#toggleFormLink {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
 /* Error Messages */
-.messages p {
-    color: #ff5858;
+.messages {
+    margin: 0%;
+    padding: 0%;
+    color: rgb(211, 114, 114);
+    text-shadow: 1px 1px 1px black;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     font-size: 1rem;
-    margin-top: 5vh;
 }
 
 /* Responsive Design */
