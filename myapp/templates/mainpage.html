@@ -35,7 +35,7 @@
             </div>
             <div class="profile-details">
               <p style="font-size: 1.5rem;">{{ user.username }}</p>
-              <p id="about-user">About {{ user.username }}</p>
+              <p id="about-user">{{ profile.bio }}</p>
               <form method="POST" action="{% url 'getStarted' %}">
                 {% csrf_token %}
                 <input type="hidden" name="form_type" value="logout">

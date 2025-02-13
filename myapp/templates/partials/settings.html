@@ -1,9 +1,25 @@
 {% load static %}
-<div class="setting-container">
+
+<link rel="stylesheet" href="{% static 'css/partials/setting.css' %}">
+
+<div id="settings-container">
     <h1>Manage Your Account</h1>
-    <h2>Change Your Profile Picture</h2>
-    <h2>Bio</h2>
-    <input type="text" placeholder="About">
-    <button>Save Changes</button>
+    <h2>Hello {{ user.username }}!</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <h2>Change your Profile Picture</h2>
+        <input type="file" name="profile_picture">
+        {% if profile.profile_picture %}
+        <div>
+            <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" width="100" />
+        </div>
+        {% endif %}
+
+        <h2>Bio</h2>
+        <textarea name="bio" id="bio" rows="5" cols="60" placeholder="Write about yourself">{{ profile.bio }}</textarea>
+
+        <br>
+        <button type="submit" class="button" id="save-changes">Save Changes</button>
+    </form>
 </div>
-<link rel="stylesheet" href="{% static "css/partials/settings.css" %}">

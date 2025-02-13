@@ -1,5 +1,7 @@
 import * as THREE from '/static/js/three.js-master/build/three.module.js';
 import { OrbitControls } from '/static/js/three.js-master/examples/jsm/controls/OrbitControls.js';
+import { GLTFLoader } from '/static/js/three.js-master/examples/jsm/loaders/GLTFLoader.js';
+import { DragControls } from '/static/js/three.js-master/examples/jsm/controls/DragControls.js';
 
 document.addEventListener("DOMContentLoaded", function() {
     const createCanvas = document.getElementById("createCanvas");
@@ -29,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function() {
     controls.maxPolarAngle = Math.PI / 2.08;
     controls.minPolarAngle = Math.PI / 4;
 
-   // background grid
+    // background grid
     const gridSize = 1000;
     const gridSegments = 100;
     function createGrid(size, segments) {
@@ -84,262 +86,221 @@ document.addEventListener("DOMContentLoaded", function() {
         createScene.add(roomGrid);
     }
 
-    // undo and redo block
-    const undoStack = [];
-    const redoStack = [];
+    // ROOM block
 
-    // saving current displayed state
-    function saveState() {
-        let sceneSnapshot = createScene.children
-            .filter(obj => obj instanceof THREE.Mesh && obj.geometry)
-            .map(object => ({
-                name: object.name || "Unnamed",
-                geometry: object.geometry ? object.geometry.clone() : null,
-                material: object.material ? object.material.clone() : null,
-                position: object.position.clone(),
-            }));
+    document.getElementById("create-btn").addEventListener("click", createRoom);
 
-        let colorState = {
-            wallColor: document.getElementById("wall-color").value,
-            floorColor: document.getElementById("floor-color").value,
-        }
-
-        console.log("Saving state:", sceneSnapshot, colorState);
-        undoStack.push({scene: sceneSnapshot, colors: colorState});
-        redoStack.length = 0; // firstly there shouldnt be redo
-    }
-
-    // undo function
-    function restoreState(snapshot) {
-        //removing everything first
-        if (!snapshot || snapshot.length === 0) return; 
-
-        createScene.children
-            .filter(obj => obj instanceof THREE.Mesh)
-            .forEach(obj => createScene.remove(obj));
-
-        snapshot.scene.forEach(savedObject => {
-            if (savedObject.geometry && savedObject.material) {
-                const restoredObject = new THREE.Mesh(
-                    savedObject.geometry.clone(),
-                    savedObject.material.clone()
-                );
-                restoredObject.position.copy(savedObject.position);
-                restoredObject.name = savedObject.name;
-                createScene.add(restoredObject);
-            }
-        });
-
-        document.getElementById("wall-color").value = snapshot.colors.wallColor;
-        document.getElementById("floor-color").value = snapshot.colors.floorColor;
-
-        wallColorInput.value = snapshot.colors.wallColor;
-        floorColorInput.value = snapshot.colors.floorColor;
-
-        wallColorInput.dispatchEvent(new Event("input", { bubbles: true }));
-        floorColorInput.dispatchEvent(new Event("input", { bubbles: true }));
-
-        createRenderer.render(createScene, createCamera);
-    }
-
-    // undo action
-    document.getElementById("undo-btn").addEventListener("click", function () {
-        if (undoStack.length > 0) {
-            const previousState = undoStack.pop();
-            redoStack.push({
-                scene: createScene.children
-                    .filter(obj => obj instanceof THREE.Mesh)
-                    .map(obj => ({
-                        name: obj.name,
-                        geometry: obj.geometry.clone(),
-                        material: obj.material.clone(),
-                        position: obj.position.clone(),
-                    })),
-                colors: {
-                    wallColor: document.getElementById("wall-color").value,
-                    floorColor: document.getElementById("floor-color").value,
-                }
-            });
-            console.log("Snapshot restored: ", previousState);
-            restoreState(previousState);
-        }
-    })
-
-    // redo action
-    document.getElementById("redo-btn").addEventListener("click", function () {
-        if (redoStack.length > 0) {
-            const nextState = redoStack.pop();
-            undoStack.push({
-                scene: createScene.children
-                    .filter(obj => obj instanceof THREE.Mesh)
-                    .map(obj => ({
-                        name: obj.name,
-                        geometry: obj.geometry.clone(),
-                        material: obj.material.clone(),
-                        position: obj.position.clone(),
-                    })),
-                colors: {
-                    wallColor: document.getElementById("wall-color").value,
-                    floorColor: document.getElementById("floor-color").value,
-                }
-            });
-            console.log("Snapshot restored: ", nextState);
-            restoreState(nextState);
-        }
-    })
-
-
-    // square or rectangle room
-    const squareBtn = document.getElementById('square-btn');
-    const rectBtn = document.getElementById('rect-btn');
-    const createBtn = document.getElementById('create-btn');
-
-    let selectedRoom = null;
-
-    function toggleRoomSelection(button) {
-        if (button === squareBtn) {
-            selectedRoom = 'square';
-            squareBtn.classList.add('selected');
-            rectBtn.classList.remove('selected');
-        } else if (button === rectBtn) {
-            selectedRoom = 'rectangle';
-            rectBtn.classList.add('selected');
-            squareBtn.classList.remove('selected');
-        }
-    }
-
-    squareBtn.addEventListener('click', function() { toggleRoomSelection(squareBtn); });
-    rectBtn.addEventListener('click', function() { toggleRoomSelection(rectBtn); });
-
-    createBtn.addEventListener('click', function() {
-        if (selectedRoom) {
-            if (selectedRoom === 'square') {
-                createSquareRoom();
-            } else if (selectedRoom === 'rectangle') {
-                createRectangleRoom();
-            }
-        } else {
-            alert('Please select a room dimension!');
-        }
-    });
-
-    const wallColorInput = document.getElementById("wall-color");
-    
-    wallColorInput.addEventListener("input", function () {
-        saveState();
-
-        const newColor = new THREE.Color(wallColorInput.value);
-
-        createScene.children.forEach((object) => {
-            if (object.isMesh && object.material && object.material.color) {
-                if (object.name.includes("wall")) {
-                    object.material.color.set(newColor);
-                }
-            }
-        });
-        console.log("New color changed");
-    });
-
+    const lengthInput = document.getElementById("room-length");
+    const breadthInput = document.getElementById("room-breadth");
     const floorColorInput = document.getElementById("floor-color");
-    
-    floorColorInput.addEventListener("input", function () {
-        saveState();
+    const wallColorInput = document.getElementById("wall-color");
 
-        const newColor = new THREE.Color(floorColorInput.value);
+    let roomGroup = null; // Holds the room to prevent multiple creations
 
-        createScene.children.forEach((object) => {
+    function createRoom() {
+        // saveState();
+
+        let length = parseFloat(lengthInput.value);
+        let breadth = parseFloat(breadthInput.value);
+        let height = 16;
+
+        if (!length || !breadth || length <= 0 || breadth <= 0) {
+            alert("Please enter valid length and breadth.");
+            return;
+        }
+
+        if (roomGroup) {
+            createScene.remove(roomGroup);
+        }
+
+        roomGroup = new THREE.Group();
+
+        const floor = new THREE.Mesh(
+            new THREE.BoxGeometry(length, 1, breadth),
+            new THREE.MeshBasicMaterial({ color: new THREE.Color(floorColorInput.value) })
+        );
+        floor.position.set(0, 1.5, 0);
+        floor.name = "floor";
+
+        const wallMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(wallColorInput.value) });
+
+        const walls = [
+            new THREE.Mesh(new THREE.BoxGeometry(length, height, 1), wallMaterial),  // Back Wall
+            new THREE.Mesh(new THREE.BoxGeometry(1, height, breadth), wallMaterial), // Left Wall
+            new THREE.Mesh(new THREE.BoxGeometry(1, height, breadth), wallMaterial)  // Right Wall
+        ];
+
+        walls[0].position.set(0, height / 2 + 1, -breadth / 2);  // Back wall
+        walls[1].position.set(-length / 2 - 0.5, height / 2 + 1, 0); // Left wall
+        walls[2].position.set(length / 2 + 0.5, height / 2 + 1, 0);  // Right wall
+
+        walls[0].name = "wall-back";
+        walls[1].name = "wall-left";
+        walls[2].name = "wall-right";
+
+        roomGroup.add(floor, ...walls);
+
+        createScene.add(roomGroup);
+        createRoomGrid(length, breadth);
+        console.log(`Room of ${length} x ${breadth} created!`);
+    }
+
+    function updateColors() {
+        if (!roomGroup) return;
+
+        const newFloorColor = new THREE.Color(floorColorInput.value);
+        const newWallColor = new THREE.Color(wallColorInput.value);
+
+        roomGroup.children.forEach((object) => {
             if (object.isMesh && object.material && object.material.color) {
                 if (object.name.includes("floor")) {
-                    object.material.color.set(newColor);
+                    object.material.color.set(newFloorColor);
+                }
+                if (object.name.includes("wall")) {
+                    object.material.color.set(newWallColor);
                 }
             }
         });
-        console.log("New color changed");
+    }
+
+    floorColorInput.addEventListener("input", updateColors);
+    wallColorInput.addEventListener("input", updateColors);
+
+    // MODELS import
+
+    const loader = new GLTFLoader();
+
+    function addFurniture(modelPath, position) {
+        loader.load(modelPath, function (gltf) {
+            const furniture = gltf.scene;
+
+            // Compute the bounding box
+            const bbox = new THREE.Box3().setFromObject(furniture);
+            const size = bbox.getSize(new THREE.Vector3());
+
+            // Normalize size to a uniform scale
+            const maxSize = Math.max(size.x, size.y, size.z);
+            const scaleFactor = 4 / maxSize; // Normalize to 1 unit
+
+            furniture.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+            // Apply additional scaling based on furniture type
+            if (modelPath.includes("bed")) {
+                furniture.scale.multiplyScalar(2.5); // Beds should be bigger
+            } else if (modelPath.includes("wardrobe")) {
+                furniture.scale.multiplyScalar(2); // Wardrobes should be large
+            } else if (modelPath.includes("chair")) {
+                furniture.scale.multiplyScalar(1.2); // Chairs should be standard size
+            } else if (modelPath.includes("lamp")) {
+                furniture.scale.multiplyScalar(1.5); // Lamps slightly bigger
+            } else if (modelPath.includes("carpet")) {
+                furniture.scale.multiplyScalar(3); // Carpets should be wider
+            } else {
+                furniture.scale.multiplyScalar(1.5); // Default scale
+            }
+
+            // Set position
+            furniture.position.set(position.x, position.y, position.z);
+            furniture.name = modelPath;
+
+            draggableObjects.push(furniture);
+            createScene.add(furniture);
+
+        }, undefined, function (error) {
+            console.error("Error loading model:", error);
+        });
+    }
+
+    document.querySelectorAll(".furniture-icons").forEach((button, index) => {
+        button.addEventListener("click", () => {
+            const furnitureModels = [
+                "/static/models/furnitures/chair1.glb",
+                "/static/models/furnitures/chair2.glb",
+                "/static/models/furnitures/bed.glb",
+                "/static/models/furnitures/wardrobe.glb",
+                "/static/models/furnitures/lamp.glb",
+                "/static/models/furnitures/carpet1.glb",
+                "/static/models/furnitures/carpet2.glb"
+            ];
+
+            const positions = [
+                { x: 0, y: 2, z: 0 },
+                { x: 2, y: 2, z: 0 },
+                { x: -3, y: 2, z: 0 },
+                { x: 4, y: 2, z: 0 },
+                { x: -4, y: 2, z: 0 },
+                { x: 1, y: 2, z: -2 },
+                { x: -1, y: 2, z: -2 }
+            ];
+
+            addFurniture(furnitureModels[index], positions[index]);
+        });
     });
 
-    // square room
-    function createSquareRoom() {
-        saveState();
+    // MODELS dragging and moving
 
-        const roomSize = 30;
-        const roomHeight = 16;
+    let selectedObject = null;
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const draggableObjects = [];
 
-        const floor = new THREE.Mesh(
-            new THREE.BoxGeometry(roomSize, 1, roomSize),
-            new THREE.MeshBasicMaterial({ color: new THREE.Color(floorColorInput.value) })
-        );
-        floor.position.set(0, 1.5, 0);
-        floor.name = "floor";
+    window.addEventListener("click", (event) => {
+        event.preventDefault();
 
-        const wallMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(wallColorInput.value) });
+        mouse.x = (event.clientX / window.innerHeight) * 2 - 1;
+        mouse.y = (event.clientY / window.innerWidth) * 2 + 1;
 
-        const walls = [
-            new THREE.Mesh(new THREE.BoxGeometry(roomSize, roomHeight, 1), wallMaterial),  // Back Wall
-            new THREE.Mesh(new THREE.BoxGeometry(1, roomHeight, roomSize), wallMaterial),  // Left Wall
-            new THREE.Mesh(new THREE.BoxGeometry(1, roomHeight, roomSize), wallMaterial)   // Right Wall
-        ];
+        raycaster.setFromCamera(mouse, createCamera);
 
-        walls[0].position.set(0, roomHeight / 2 + 1, -roomSize / 2); // Back wall
-        walls[1].position.set(-roomSize / 2 - .5, roomHeight / 2 + 1, 0); // Left wall
-        walls[2].position.set(roomSize / 2 + .5, roomHeight / 2 + 1, 0);  // Right wall
+        const intersects = raycaster.intersectObjects(draggableObjects, true);
 
-        walls[0].name = "wall-back";
-        walls[1].name = "wall-left";
-        walls[2].name = "wall-right";
+        if (intersects.length > 0) {
+            selectedObject = intersects[0].object.parent;
+            console.log("Selected: ", selectedObject.name);
+        } else {
+            selectedObject = null;
+        }
+    });
 
-        createScene.add(floor, ...walls);
-        createRoomGrid(roomSize, roomSize);
-        console.log('Square room created!');
-    }
+    const dragControls = new DragControls(draggableObjects, createCamera, createRenderer.domElement);
 
-    // rectangle
-    function createRectangleRoom() {
-        saveState();
+    dragControls.addEventListener('dragstart', function (event) {
+        selectedObject = event.object;
+        controls.enabled = false;
+        console.log("Dragging:", selectedObject.name);
+    });
 
-        const length = 40;
-        const width = 25;
-        const roomHeight = 16;
+    dragControls.addEventListener('drag', function (event) {
+        if (event.object) {
+            event.object.position.y = 2;
+        }
+    });
 
-        const floor = new THREE.Mesh(
-            new THREE.BoxGeometry(length, 1, width),
-            new THREE.MeshBasicMaterial({ color: new THREE.Color(floorColorInput.value) })
-        );
-        floor.position.set(0, 1.5, 0);
-        floor.name = "floor";
+    dragControls.addEventListener('dragend', function () {
+        selectedObject = null;
+        controls.enabled = true;
+    });
 
-        const wallMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(wallColorInput.value) });
-
-        const walls = [
-            new THREE.Mesh(new THREE.BoxGeometry(length, roomHeight, 1), wallMaterial),  // Back Wall
-            new THREE.Mesh(new THREE.BoxGeometry(1, roomHeight, width), wallMaterial),  // Left Wall
-            new THREE.Mesh(new THREE.BoxGeometry(1, roomHeight, width), wallMaterial)   // Right Wall
-        ];
-
-        walls[0].position.set(0, roomHeight / 2 + 1, -width / 2); // Back wall
-        walls[1].position.set(-length / 2 - .5, roomHeight / 2 + 1, 0); // Left wall
-        walls[2].position.set(length / 2 + .5, roomHeight / 2 + 1, 0);  // Right wall
-
-        walls[0].name = "wall-back";
-        walls[1].name = "wall-left";
-        walls[2].name = "wall-right";
-
-        createScene.add(floor, ...walls);
-        createRoomGrid(length, width);
-        console.log('Rectangle room created!');
-    }
+    // MODELS dragging and moving end
+    
     const gridToggle = document.getElementById("grid-toggle");
     const gridStatus = document.getElementById("grid-status");
 
-    gridToggle.checked = !gridToggle.checked;
-    gridToggle.addEventListener ("change", function () {
+    // Ensure the grid is toggled correctly
+    gridToggle.addEventListener("change", function () {
+        if (!roomGrid) {
+            console.warn("No room grid to toggle.");
+            return;
+        }
+
         if (gridToggle.checked) {
             gridStatus.textContent = "Turn off the grid";
-            if (roomGrid) createScene.add(roomGrid);
-            console.log("ON");
+            createScene.add(roomGrid);
+            console.log("Grid ON");
         } else {
             gridStatus.textContent = "Turn on the grid";
-            console.log("OFF");
-            if (roomGrid) createScene.remove(roomGrid);
+            createScene.remove(roomGrid);
+            console.log("Grid OFF");
         }
     });
 
@@ -371,4 +332,5 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
 });
+
 

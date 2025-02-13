@@ -18,9 +18,6 @@
             <div class="navbar">
                 <div class="left">
                     <img src="{% static 'images/logo.png' %}" style="height: 10vh; width: auto" />
-                    <a href="">Discover Ideas</a>
-                    <a href="">Services</a>
-                    <a href="">Help Center</a>
                 </div>
                 <div class="right">
                     <button class="undo-redo" id="undo-btn">&#10226;</button>
@@ -53,8 +50,8 @@
                         <div class="dropdown-content" id="layout-dropdown" data-dropdown="layout">
                             Choose your room dimensions<br>
                             <div class="input-row" style="flex-direction: row;">
-                                <button class="room-btn" id="square-btn">Square</button>
-                                <button class="room-btn" id="rect-btn">Rectangle</button>
+                                <input type="number" id="room-length" placeholder="Length" min="1" required> x
+                                <input type="number" id="room-breadth" placeholder="Breadth" min="1" required>
                             </div>
                             <button class="button" id="create-btn" style="width: 7vw; height: 6vh;">Create</button>
                         </div>
@@ -93,7 +90,7 @@
                         <button class="button" id="help-btn">Help</button>
 
                     </div>
-                    <button id="sidebar-btn">◀</button>
+                    <button id="sidebar-btn" style="width: 3vw;">◀</button>
                 </div>
                 <div class="scroll-content" id="scroll-content">
                     <canvas id="createCanvas"></canvas>
