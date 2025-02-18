@@ -1,11 +1,7 @@
-{% load static %}
-
-<link rel="stylesheet" href="{% static 'css/partials/setting.css' %}">
-
 <div id="settings-container">
     <h1>Manage Your Account</h1>
     <h2>Hello {{ user.username }}!</h2>
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" action="{% url 'settings' %}">
         {% csrf_token %}
 
         <h2>Change your Profile Picture</h2>

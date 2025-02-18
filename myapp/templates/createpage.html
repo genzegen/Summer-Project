@@ -33,7 +33,7 @@
                         <div class="profile-img"></div>
                         <div class="profile-details">
                         <p style="font-size: 1.5rem;">{{ user.username }}</p>
-                        <p id="about-user">About {{ user.username }}</p>
+                        <p id="about-user">{{ profile.bio }}</p>
                         <button id="logout-btn" class="button" style="width: 14vw; margin-top: 5%;">Go Back &ensp; &#8617;</button>
                         </div>
                     </div>
@@ -80,7 +80,7 @@
                             style="flex-direction: row; justify-content: space-between;">
                             <span id="grid-status">Turn off the grid</span>
                             <label class="switch">
-                                <input type="checkbox" id="grid-toggle">
+                                <input type="checkbox" id="grid-toggle" checked>
                                 <span class="slider"></span>
                             </label>
                         </div>

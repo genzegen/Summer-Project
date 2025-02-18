@@ -12,8 +12,10 @@ def intro(request):
 def about(request):
     return render(request, 'about.html')
 
+@login_required
 def mainpage(request):
-    return render(request, 'mainpage.html')
+    profile = UserProfile.objects.get(user=request.user)
+    return render(request, 'mainpage.html', { 'profile': profile })
 
 def getStarted(request):
     if request.method == 'POST':
@@ -74,37 +76,31 @@ def community(request):
 
 @login_required
 def settings(request):
-    # Fetch the user profile
+
     try:
         profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
-        # Handle if the profile does not exist
         profile = UserProfile.objects.create(user=request.user)
 
     if request.method == "POST":
-        # Retrieve the bio from the form
         bio = request.POST.get('bio', '').strip()
 
-        # Update the profile bio
         profile.bio = bio
 
-        # Handle profile picture if provided
         if "profile_picture" in request.FILES:
             profile.profile_picture = request.FILES['profile_picture']
 
-        # Save the profile data
         profile.save()
 
-        # Redirect to the settings page with updated data
-        return redirect('settings')
+        return render(request, "mainpage.html", {"profile": profile})
 
-    # Render the settings page with the profile data
     return render(request, "partials/settings.html", {'profile': profile})
 
 
 def createpage(request):
+    profile = UserProfile.objects.get(user=request.user)
     if request.user.is_authenticated:
         username = request.user.username
     else:
         username = None
-    return render(request, "createpage.html", {'username': username})
+    return render(request, "createpage.html", {'username': username, 'profile': profile})

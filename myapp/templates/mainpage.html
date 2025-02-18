@@ -3,108 +3,111 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BYR3D | Create</title>
-  <link rel="stylesheet" href="{% static 'css/mainpage.css' %}" />
-  <link rel="stylesheet" href="{% static 'css/profile.css' %}">
-  <script type="module" src="/static/js/three.js-master/build/three.module.js?v=1.0"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}BYR3D{% endblock %}</title>  <!-- This is the place to change the title dynamically -->
+    <link rel="stylesheet" href="{% static 'css/mainpage.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+    <link rel="stylesheet" href="{% static 'css/partials/setting.css' %}">
+    <script type="module" src="/static/js/three.js-master/build/three.module.js?v=1.0"></script>
 </head>
 
 <body>
-  <canvas id="particleCanvas"></canvas>
-  <div class="main">
-    <div class="navbar">
-      <div class="left">
-        <img src="{% static 'images/logo.png' %}" style="height: 10vh; width: auto" />
-        <a href="">Discover Ideas</a>
-        <a href="">Services</a>
-        <a href="">Help Center</a>
-      </div>
-      <div class="right">
-        <button class="nav-button" id="notification">
-          <img src="{% static 'images/notification.png' %}" />
-        </button>
-        <button class="nav-button" id="profile-img"></button>
-        {% if user.is_authenticated %}
-        <div class="popup" id="profile">
-          <div class="pop-content">
-            <button id="close-profile">&#10006;</button>
-            <div class="profile-img">
-              <img src="{% static "images/default-profile.jpg" %}">
+    <canvas id="particleCanvas"></canvas>
+    <div class="main">
+        <div class="navbar">
+            <div class="left">
+                <img src="{% static 'images/logo.png' %}" style="height: 10vh; width: auto" />
+                <a href="">Discover Ideas</a>
+                <a href="">Find Designers</a>
+                <a href="">Help Center</a>
             </div>
-            <div class="profile-details">
-              <p style="font-size: 1.5rem;">{{ user.username }}</p>
-              <p id="about-user">{{ profile.bio }}</p>
-              <form method="POST" action="{% url 'getStarted' %}">
-                {% csrf_token %}
-                <input type="hidden" name="form_type" value="logout">
-                <button id="logout-btn" class="button" style="width: 14vw; margin-top: 5vh; bottom: 2vh;">Log Out</button>
-              </form>
+            <div class="right">
+                <button class="nav-button" id="notification">
+                    <img src="{% static 'images/notification.png' %}" />
+                </button>
+                <button class="nav-button" id="profile-img"></button>
+                {% if user.is_authenticated %}
+                <div class="popup" id="profile">
+                    <div class="pop-content">
+                        <button id="close-profile">&#10006;</button>
+                        <div class="profile-img">
+                            <img src="{% static "images/default-profile.jpg" %}">
+                        </div>
+                        <div class="profile-details">
+                            <p style="font-size: 1.5rem;">{{ user.username }}</p>
+                            <p id="about-user">{{ profile.bio }}</p>
+                            <form method="POST" action="{% url 'getStarted' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="form_type" value="logout">
+                                <button id="logout-btn" class="button" style="width: 14vw; margin-top: 5vh; bottom: 2vh;">Log Out</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <button class="nav-button" id="new-proj">+ New Project</button>
+                <div class="popup" id="new-project-popup">
+                    <div class="pop-content">
+                        <button id="close-popup">&#10006;</button>
+                        <h1 style="
+                            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial,
+                            sans-serif; font-size: 1.6rem;
+                        ">
+                            Create your project
+                        </h1>
+                        <div style="display: flex; flex-direction: column; align-items: start;">
+                            <p style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">
+                                Give an unique name for your project</p>
+                            <input id="project-title" type="text" placeholder="Project Name" style="
+                                font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial,
+                                sans-serif; width: 20vw; height: 3vh; font-size: 1.1rem; padding: 1%;
+                            " /><br>
+                            <p style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">Add description</p>
+                            <textarea type="text" placeholder="About your project (Max 300 letters)" style="
+                                font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial,
+                                sans-serif; width: 24vw; height: 15vh; font-size: 1.1rem; padding: 1.5%; text-align: left;
+                            " maxlength="300" /></textarea>
+                        </div>
+                        <a href="{% url 'createpage' %}">
+                            <button id="create-proj-btn" class="button" style="width: 14vw; margin-top: 5%;">Create Project</button>
+                        </a>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-        {% endif %}
-        <button class="nav-button" id="new-proj">+ New Project</button>
-        <div class="popup" id="new-project-popup">
-          <div class="pop-content">
-            <button id="close-popup">&#10006;</button>
-            <h1 style="
-                  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial,
-                    sans-serif; font-size: 1.6rem;
-                ">
-              Create your project
-            </h1>
-            <div style="display: flex; flex-direction: column; align-items: start;">
-              <p style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">
-                Give an unique name for your project</p>
-              <input id="project-title" type="text" placeholder="Project Name" style="
-                  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial,
-                    sans-serif; width: 20vw; height: 3vh; font-size: 1.1rem; padding: 1%;
-                " /><br>
-              <p style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">Add description</p>
-              <textarea type="text" placeholder="About your project (Max 300 letters)" style="
-                  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial,
-                    sans-serif; width: 24vw; height: 15vh; font-size: 1.1rem; padding: 1.5%; text-align: left;
-                " maxlength="300" /></textarea>
+        <div class="content">
+            <div class="sidebar">
+                <div class="sidebar-content">
+                    <button class="button" data-page="{% url 'home' %}">Home</button>
+                    <button class="button" data-page="{% url 'my-projects' %}">
+                        My Projects
+                    </button>
+                    <button class="button" data-page="{% url 'templates' %}">
+                        Templates
+                    </button>
+                    <button class="button" data-page="{% url 'community' %}">
+                        Community
+                    </button>
+                    <button class="button" data-page="{% url 'settings' %}">
+                        Manage Your Account
+                    </button>
+                </div>
+                <button id="sidebar-btn">◀</button>
             </div>
-            <a href="{% url 'createpage' %}">
-              <button id="create-proj-btn" class="button" style="width: 14vw; margin-top: 5%;">Create Project</button>
-            </a>
-          </div>
+            <div class="scroll-content" id="scroll-content">
+                {% block content %}
+                <!-- Default content goes here -->
+                {% endblock %}
+            </div>
         </div>
-      </div>
     </div>
-    <div class="content">
-      <div class="sidebar">
-        <div class="sidebar-content">
-          <button class="button" data-page="{% url 'home' %}">Home</button>
-          <button class="button" data-page="{% url 'my-projects' %}">
-            My Projects
-          </button>
-          <button class="button" data-page="{% url 'templates' %}">
-            Templates
-          </button>
-          <button class="button" data-page="{% url 'community' %}">
-            Community
-          </button>
-          <button class="button" data-page="{% url 'settings' %}">
-            Manage Your Account
-          </button>
-        </div>
-        <button id="sidebar-btn">◀</button>
-      </div>
-      <div class="scroll-content" id="scroll-content">
-        {% include 'partials/home.html' %}
-      </div>
-    </div>
-  </div>
-  <script type="module" src="{% static 'js/home.js' %}"></script>
-  <script>
-    var homeUrl = "{% url 'home' %}";
-  </script>
-  <script src="{% static 'js/mainpage.js' %}"></script>
-  <script src="{% static "js/profile.js" %}"></script>
+    <script type="module" src="{% static 'js/home.js' %}"></script>
+    <script>
+        var homeUrl = "{% url 'home' %}";
+    </script>
+    <script src="{% static 'js/mainpage.js' %}"></script>
+    <script src="{% static "js/profile.js" %}"></script>
 </body>
 
 </html>

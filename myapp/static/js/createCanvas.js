@@ -58,6 +58,80 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     createGrid(gridSize, gridSegments);
 
+    // lightings
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    createScene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
+    directionalLight.position.set(0, 17, -40);
+    directionalLight.castShadows = true;
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
+    directionalLight.shadow.camera.left = -70;
+    directionalLight.shadow.camera.right = 70;
+    directionalLight.shadow.camera.top = 70;
+    directionalLight.shadow.camera.bottom = -70;
+    createScene.add(directionalLight);
+
+    // camera position
+    createCamera.position.set(0, 30, 60);
+    createCamera.lookAt(0, 10, 0);
+
+    // rendering loop
+    function animateCreate() {
+        requestAnimationFrame(animateCreate);
+        controls.update();
+        createRenderer.render(createScene, createCamera);
+    }
+
+    // window resize handling
+    window.addEventListener("resize", () => {
+        createCamera.aspect = window.innerWidth / window.innerHeight;
+        createCamera.updateProjectionMatrix();
+        createRenderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    const createBtn = document.getElementById("create-btn");
+    const roomLength = document.getElementById("room-length");
+    const roomBreadth = document.getElementById("room-breadth");
+    const roomHeight = 15;
+
+    // Create button functionality
+    createBtn.addEventListener("click", event => {
+        const length = parseFloat(roomLength.value);
+        const breadth = parseFloat(roomBreadth.value);
+
+        console.log("Creating floor with:", length, breadth);
+        createFloor(length, breadth);
+    });
+
+    // Creating floor
+    let floorMesh;
+    const floorColorInput = document.getElementById("floor-color");
+
+    function createFloor (roomLength, roomBreadth) {
+        let position = { x: 0, y: 2, z: 0 };
+        let scale = { x: roomLength, y: 1, z: roomBreadth};
+
+        floorMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(1,1,1),
+            new THREE.MeshPhongMaterial({ color: floorColorInput.value })
+        );
+        floorMesh.position.set(position.x, position.y, position.z);
+        floorMesh.scale.set(scale.x, scale.y, scale.z);
+        floorMesh.castShadow = true;
+        floorMesh.receiveShadow = true;
+        createRoomGrid(roomLength, roomBreadth);
+        createScene.add(floorMesh);
+    }
+
+    floorColorInput.addEventListener("input", () => {
+        if(floorMesh) {
+            floorMesh.material.color.set(floorColorInput.value);
+        }
+    })
+
+    // Grid above floor
     let roomGrid = null; // global for toggling
     function createRoomGrid(roomSizeX, roomSizeZ) {
         const gridMaterial = new THREE.LineBasicMaterial({
@@ -68,111 +142,57 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const gridGeometry = new THREE.BufferGeometry();
         const vertices = [];
-        const positionY = 2.1;
-        const step = 4; // Grid line every 2 units
+        const positionY = 2.51;
+        
+        const cells = 10;
+
+        const stepX = roomSizeX / cells;
+        const stepZ = roomSizeZ / cells;
 
         // Vertical lines (along X-axis)
-        for (let i = -roomSizeX / 2; i <= roomSizeX / 2; i += step) {
+        for (let i = -roomSizeX / 2; i <= roomSizeX / 2; i += stepX) {
             vertices.push(i, positionY, -roomSizeZ / 2, i, positionY, roomSizeZ / 2);
         }
 
         // Horizontal lines (along Z-axis)
-        for (let i = -roomSizeZ / 2; i <= roomSizeZ / 2; i += step) {
+        for (let i = -roomSizeZ / 2; i <= roomSizeZ / 2; i += stepZ) {
             vertices.push(-roomSizeX / 2, positionY, i, roomSizeX / 2, positionY, i);
         }
 
         gridGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
         roomGrid = new THREE.LineSegments(gridGeometry, gridMaterial);
         createScene.add(roomGrid);
+        console.log("Room grid created with 10x10 cells");
     }
 
-    // ROOM block
+    const gridToggle = document.getElementById("grid-toggle");
+    const gridStatus = document.getElementById("grid-status");
 
-    document.getElementById("create-btn").addEventListener("click", createRoom);
-
-    const lengthInput = document.getElementById("room-length");
-    const breadthInput = document.getElementById("room-breadth");
-    const floorColorInput = document.getElementById("floor-color");
-    const wallColorInput = document.getElementById("wall-color");
-
-    let roomGroup = null; // Holds the room to prevent multiple creations
-
-    function createRoom() {
-        // saveState();
-
-        let length = parseFloat(lengthInput.value);
-        let breadth = parseFloat(breadthInput.value);
-        let height = 16;
-
-        if (!length || !breadth || length <= 0 || breadth <= 0) {
-            alert("Please enter valid length and breadth.");
+    gridToggle.addEventListener("change", function () {
+        if (!roomGrid) {
+            console.warn("No room grid to toggle.");
             return;
         }
 
-        if (roomGroup) {
-            createScene.remove(roomGroup);
+        if (gridToggle.checked) {
+            gridStatus.textContent = "Turn off the grid";
+            createScene.add(roomGrid);
+            console.log("Grid ON");
+        } else {
+            gridStatus.textContent = "Turn on the grid";
+            createScene.remove(roomGrid);
+            console.log("Grid OFF");
         }
+    });
 
-        roomGroup = new THREE.Group();
-
-        const floor = new THREE.Mesh(
-            new THREE.BoxGeometry(length, 1, breadth),
-            new THREE.MeshBasicMaterial({ color: new THREE.Color(floorColorInput.value) })
-        );
-        floor.position.set(0, 1.5, 0);
-        floor.name = "floor";
-
-        const wallMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(wallColorInput.value) });
-
-        const walls = [
-            new THREE.Mesh(new THREE.BoxGeometry(length, height, 1), wallMaterial),  // Back Wall
-            new THREE.Mesh(new THREE.BoxGeometry(1, height, breadth), wallMaterial), // Left Wall
-            new THREE.Mesh(new THREE.BoxGeometry(1, height, breadth), wallMaterial)  // Right Wall
-        ];
-
-        walls[0].position.set(0, height / 2 + 1, -breadth / 2);  // Back wall
-        walls[1].position.set(-length / 2 - 0.5, height / 2 + 1, 0); // Left wall
-        walls[2].position.set(length / 2 + 0.5, height / 2 + 1, 0);  // Right wall
-
-        walls[0].name = "wall-back";
-        walls[1].name = "wall-left";
-        walls[2].name = "wall-right";
-
-        roomGroup.add(floor, ...walls);
-
-        createScene.add(roomGroup);
-        createRoomGrid(length, breadth);
-        console.log(`Room of ${length} x ${breadth} created!`);
-    }
-
-    function updateColors() {
-        if (!roomGroup) return;
-
-        const newFloorColor = new THREE.Color(floorColorInput.value);
-        const newWallColor = new THREE.Color(wallColorInput.value);
-
-        roomGroup.children.forEach((object) => {
-            if (object.isMesh && object.material && object.material.color) {
-                if (object.name.includes("floor")) {
-                    object.material.color.set(newFloorColor);
-                }
-                if (object.name.includes("wall")) {
-                    object.material.color.set(newWallColor);
-                }
-            }
-        });
-    }
-
-    floorColorInput.addEventListener("input", updateColors);
-    wallColorInput.addEventListener("input", updateColors);
-
-    // MODELS import
-
+    // Models import
     const loader = new GLTFLoader();
+    const draggableObjects = [];
 
     function addFurniture(modelPath, position) {
         loader.load(modelPath, function (gltf) {
             const furniture = gltf.scene;
+            console.log("Model loaded:", modelPath);
 
             // Compute the bounding box
             const bbox = new THREE.Box3().setFromObject(furniture);
@@ -203,9 +223,16 @@ document.addEventListener("DOMContentLoaded", function() {
             furniture.position.set(position.x, position.y, position.z);
             furniture.name = modelPath;
 
-            draggableObjects.push(furniture);
-            createScene.add(furniture);
+            furniture.traverse((child) => {
+                if(child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            })
 
+            createScene.add(furniture);
+            draggableObjects.push(furniture);
+            
         }, undefined, function (error) {
             console.error("Error loading model:", error);
         });
@@ -236,101 +263,27 @@ document.addEventListener("DOMContentLoaded", function() {
             addFurniture(furnitureModels[index], positions[index]);
         });
     });
-
-    // MODELS dragging and moving
-
-    let selectedObject = null;
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-    const draggableObjects = [];
-
-    window.addEventListener("click", (event) => {
-        event.preventDefault();
-
-        mouse.x = (event.clientX / window.innerHeight) * 2 - 1;
-        mouse.y = (event.clientY / window.innerWidth) * 2 + 1;
-
-        raycaster.setFromCamera(mouse, createCamera);
-
-        const intersects = raycaster.intersectObjects(draggableObjects, true);
-
-        if (intersects.length > 0) {
-            selectedObject = intersects[0].object.parent;
-            console.log("Selected: ", selectedObject.name);
-        } else {
-            selectedObject = null;
-        }
-    });
+    
+    // Drag controls
+    let floorBounds = {
+        minX: -roomLength / 2,
+        maxX: roomLength / 2,
+        minZ: -roomBreadth / 2,
+        maxZ: roomBreadth / 2
+    };
 
     const dragControls = new DragControls(draggableObjects, createCamera, createRenderer.domElement);
 
-    dragControls.addEventListener('dragstart', function (event) {
-        selectedObject = event.object;
-        controls.enabled = false;
-        console.log("Dragging:", selectedObject.name);
-    });
-
     dragControls.addEventListener('drag', function (event) {
-        if (event.object) {
-            event.object.position.y = 2;
-        }
+        const object = event.object;
+
+        // Constrain the object within the room boundaries (X and Z)
+        object.position.x = Math.max(floorBounds.minX, Math.min(floorBounds.maxX, object.position.x));
+        object.position.z = Math.max(floorBounds.minZ, Math.min(floorBounds.maxZ, object.position.z));
+
+        // Optional: Snap the object to the floor (Y axis remains fixed)
+        object.position.y = 2.6; // or whatever height you want the furniture to be at
     });
 
-    dragControls.addEventListener('dragend', function () {
-        selectedObject = null;
-        controls.enabled = true;
-    });
-
-    // MODELS dragging and moving end
-    
-    const gridToggle = document.getElementById("grid-toggle");
-    const gridStatus = document.getElementById("grid-status");
-
-    // Ensure the grid is toggled correctly
-    gridToggle.addEventListener("change", function () {
-        if (!roomGrid) {
-            console.warn("No room grid to toggle.");
-            return;
-        }
-
-        if (gridToggle.checked) {
-            gridStatus.textContent = "Turn off the grid";
-            createScene.add(roomGrid);
-            console.log("Grid ON");
-        } else {
-            gridStatus.textContent = "Turn on the grid";
-            createScene.remove(roomGrid);
-            console.log("Grid OFF");
-        }
-    });
-
-    // **Lighting**
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    createScene.add(ambientLight);
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
-    directionalLight.position.set(-13, 18, -40);
-    createScene.add(directionalLight);
-
-    // **Set Camera Position**
-    createCamera.position.set(0, 30, 60);
-    createCamera.lookAt(0, 10, 0);
-
-    // **Render Loop**
-    function animateCreate() {
-        requestAnimationFrame(animateCreate);
-        controls.update();
-        createRenderer.render(createScene, createCamera);
-    }
     animateCreate();
-
-    // **Resize Handling**
-    window.addEventListener("resize", () => {
-        createCamera.aspect = window.innerWidth / window.innerHeight;
-        createCamera.updateProjectionMatrix();
-        createRenderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
 });
-
-

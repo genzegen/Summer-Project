@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 sidebarBtn.textContent = "◀";  // Change button text
                 sidebarContent.style.opacity = "1"; // Show sidebar content
             } else {
-                sidebar.style.width = "3vw";  // Close sidebar
+                sidebar.style.width = "2.5vw";  // Close sidebar
                 sidebarBtn.textContent = "▶";  // Change button text
                 sidebarContent.style.opacity = "0"; // Hide sidebar content
             }
