@@ -25,20 +25,30 @@
                     <button class="nav-button" id="notification">
                         <img src="{% static 'images/notification.png' %}" />
                     </button>
-                    <button class="nav-button" id="profile-img"></button>
-                    {% if user.is_authenticated %}
+                    <button class="nav-button" id="profile-img"><img src="{{ profile.profile_picture.url}}" alt=""></button>
+                {% if user.is_authenticated %}
                     <div class="popup" id="profile">
-                    <div class="pop-content">
-                        <button id="close-profile">&#10006;</button>
-                        <div class="profile-img"></div>
-                        <div class="profile-details">
-                        <p style="font-size: 1.5rem;">{{ user.username }}</p>
-                        <p id="about-user">{{ profile.bio }}</p>
-                        <button id="logout-btn" class="button" style="width: 14vw; margin-top: 5%;">Go Back &ensp; &#8617;</button>
+                        <div class="pop-content">
+                            <button id="close-profile">&#10006;</button>
+                            <div class="profile-img">
+                                {% if profile.profile_picture %}
+                                    <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" />
+                                {% else %}
+                                    <img src="{% static 'images/default-profile.jpg' %}" alt="Default Profile Picture" />
+                                {% endif %}
+                            </div>
+                            <div class="profile-details">
+                                <p style="font-size: 1.5rem;">{{ user.username }}</p>
+                                <p id="about-user">{{ profile.bio }}</p>
+                                <form method="POST" action="{% url 'getStarted' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="form_type" value="logout">
+                                    <button id="logout-btn" class="button" style="width: 14vw; margin-top: 5vh; bottom: 2vh;">Log Out</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                    </div>
-                    {% endif %}
+                {% endif %}
                     <button class="button" id="save-btn">Save</button>
                 </div>
             </div>
@@ -49,9 +59,15 @@
                         <button class="button" id="layout-btn">Layouts</button>
                         <div class="dropdown-content" id="layout-dropdown" data-dropdown="layout">
                             Choose your room dimensions<br>
-                            <div class="input-row" style="flex-direction: row;">
+                            <div class="input-row" style="flex-direction: row; margin-bottom:5px;">
                                 <input type="number" id="room-length" placeholder="Length" min="1" required> x
                                 <input type="number" id="room-breadth" placeholder="Breadth" min="1" required>
+                            </div>
+                            Templates
+                            <div class="templates">
+                                <button class="room-template-btn" id="standard">Standard bedroom (12ft x 10ft)</button>
+                                <button class="room-template-btn" id="master">Master bedroom (16ft x 14ft)</button>
+                                <button class="room-template-btn" id="living">Living room (20ft x 15ft)</button>
                             </div>
                             <button class="button" id="create-btn" style="width: 7vw; height: 6vh;">Create</button>
                         </div>

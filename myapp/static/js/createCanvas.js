@@ -96,10 +96,26 @@ document.addEventListener("DOMContentLoaded", function() {
     const roomBreadth = document.getElementById("room-breadth");
     const roomHeight = 15;
 
+    const templates = {
+        standard: {length: 12, breadth: 10},
+        master: { length: 16, breadth: 14 },
+        living: { length: 20, breadth: 15 }
+    };
+
+    document.querySelectorAll(".room-template-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            const templateId = this.id;
+            if (templates[templateId]) {
+                roomLength.value = templates[templateId].length;
+                roomBreadth.value = templates[templateId].breadth;
+            }
+        })
+    });
+
     // Create button functionality
     createBtn.addEventListener("click", event => {
-        const length = parseFloat(roomLength.value);
-        const breadth = parseFloat(roomBreadth.value);
+        const length = parseFloat(roomLength.value) * 2;
+        const breadth = parseFloat(roomBreadth.value) * 2;
 
         console.log("Creating floor with:", length, breadth);
         createFloor(length, breadth);
