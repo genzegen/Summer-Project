@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import path
 from myapp.views import *
+from django.conf.urls.static import static
+from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -12,6 +14,6 @@ urlpatterns = [
     path("my-projects/", my_projects, name="my-projects"),
     path("templates/", templates, name="templates"),
     path("community/", community, name="community"),
-    path("settings/", settings, name="settings"),
+    path("settings/", settings_view, name="settings"),
     path("createpage/", createpage, name="createpage"),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

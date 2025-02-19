@@ -1,21 +1,96 @@
 <div id="settings-container">
-    <h1>Manage Your Account</h1>
-    <h2>Hello {{ user.username }}!</h2>
-    <form method="post" enctype="multipart/form-data" action="{% url 'settings' %}">
-        {% csrf_token %}
+    <div class="title-manage">
+        <h1>Account Settings</h1>
+    </div>
+    <div class="settings-content">
+        <form method="post" enctype="multipart/form-data" action="{% url 'settings' %}" id="settings-form">
+            {% csrf_token %}
+            <div class="settings-main">
+                <div class="customize">
+                    <div class="hello">
+                        <h2><i>Customize</i></h2>
+                    </div>
+                    <div class="profilepic-container">
+                        <h2 style="font-size: 1.2rem;">Change your Profile Picture</h2>
+                        <div class="profile-picture-box" onclick="document.getElementById('profile-picture-input').click();">
+                            {% if profile.profile_picture %}
+                                <img id="profile-preview" src="{{ profile.profile_picture.url }}" alt="Profile Picture" width="100" />
+                            {% else %}
+                                <img id="profile-preview" src="" alt="Profile Picture" width="100" style="display: none;" />
+                                <span id="upload-text">Click to Upload</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <input type="file" name="profile_picture" id="profile-picture-input" style="display: none;" />
 
-        <h2>Change your Profile Picture</h2>
-        <input type="file" name="profile_picture">
-        {% if profile.profile_picture %}
-        <div>
-            <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" width="100" />
-        </div>
-        {% endif %}
+                    <h2 style="font-size:1.1rem;">Bio</h2>
+                    <textarea name="bio" id="bio" rows="4" cols="40" placeholder="Write about yourself">{{ profile.bio }}</textarea>
 
-        <h2>Bio</h2>
-        <textarea name="bio" id="bio" rows="5" cols="60" placeholder="Write about yourself">{{ profile.bio }}</textarea>
+                </div>
+                <div class="security">
+                    <div class="hello">
+                        <h2><i>Security</i></h2>
+                    </div>
+                    <!-- Change Password Section -->
+                    <h2 style="font-size:1.2rem;">Change Password</h2>
+                    <input type="password" id="current_password" name="current_password" placeholder="Current Password">
+                    
+                    <input type="password" id="new_password" name="new_password" placeholder="New Password">
+                    
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password">
 
-        <br>
-        <button type="submit" class="button" id="save-changes">Save Changes</button>
-    </form>
+                    <button type="submit" id="submit" class="button" id="save-changes">Save Changes</button>
+                </div>
+            </div> 
+        </form>
+    </div>
 </div>
+
+<script>
+    const form = document.getElementById("settings-form");
+    const currentPassword = document.getElementById("current_password");
+    const newPassword = document.getElementById("new_password");
+    const confirmPassword = document.getElementById("confirm_password");
+    const errorMessage = document.getElementById("error-message");
+    const submitButton = document.getElementById("submit");
+
+
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgElement = document.getElementById("profile-preview");
+                const uploadText = document.getElementById("upload-text");
+
+                imgElement.src = e.target.result;
+                imgElement.style.display = "block"; 
+
+                if (uploadText) uploadText.style.display = "none"; 
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    form.addEventListener("submit", function(event) {
+        let error = '';
+
+        // Check if current password is entered
+        if (!currentPassword.value) {
+            error += 'Current password is required.<br>';
+        }
+
+        // Check if new password and confirm password match
+        if (newPassword.value !== confirmPassword.value) {
+            error += 'New password and confirmation do not match.<br>';
+        }
+
+        if (error) {
+            event.preventDefault();
+            errorMessage.innerHTML = error;
+            return false;
+        }
+
+        return true;
+    });
+</script>

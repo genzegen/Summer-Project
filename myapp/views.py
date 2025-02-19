@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import check_password
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from .models import UserProfile
 from django.contrib import messages
@@ -75,12 +77,14 @@ def community(request):
     return render(request, "partials/community.html")
 
 @login_required
-def settings(request):
+def settings_view(request):
 
     try:
         profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
         profile = UserProfile.objects.create(user=request.user)
+
+    success_message = None
 
     if request.method == "POST":
         bio = request.POST.get('bio', '').strip()
@@ -90,9 +94,20 @@ def settings(request):
         if "profile_picture" in request.FILES:
             profile.profile_picture = request.FILES['profile_picture']
 
+        current_password = request.POST.get("current_password")
+        new_password = request.POST.get("new_password")
+        if current_password and new_password:
+            if not check_password(current_password, request.user.password):
+                return render(request, "mainpage.html", {"profile": profile, "error": "Current password is incorrect."})
+
+            request.user.set_password(new_password)
+            request.user.save()
+            update_session_auth_hash(request, request.user)
+            success_message = "Password changed successfully."
+
         profile.save()
 
-        return render(request, "mainpage.html", {"profile": profile})
+        return render(request, "mainpage.html", {"profile": profile, "success": success_message})
 
     return render(request, "partials/settings.html", {'profile': profile})
 

@@ -26,13 +26,18 @@
                 <button class="nav-button" id="notification">
                     <img src="{% static 'images/notification.png' %}" />
                 </button>
-                <button class="nav-button" id="profile-img"></button>
+                {% comment %} profile section {% endcomment %}
+                <button class="nav-button" id="profile-img"><img src="{{ profile.profile_picture.url}}" alt=""></button>
                 {% if user.is_authenticated %}
                 <div class="popup" id="profile">
                     <div class="pop-content">
                         <button id="close-profile">&#10006;</button>
                         <div class="profile-img">
-                            <img src="{% static "images/default-profile.jpg" %}">
+                            {% if profile.profile_picture %}
+                                <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" />
+                            {% else %}
+                                <img src="{% static 'images/default-profile.jpg' %}" alt="Default Profile Picture" />
+                            {% endif %}
                         </div>
                         <div class="profile-details">
                             <p style="font-size: 1.5rem;">{{ user.username }}</p>
@@ -95,7 +100,23 @@
                 </div>
                 <button id="sidebar-btn">◀</button>
             </div>
+
+            {% if error %}
+                <div id="error-message" class="error-message">
+                    <img src="{% static "images/wrong.png" %}">
+                    <p>{{ error }}</p>
+                </div>
+            {% endif %}
+
+            {% if success %}
+                <div class="success-message" id="success-message">
+                    <img src="{% static "images/correct.png" %}" alt="">
+                    <p>{{ success }}</p>
+                </div>
+            {% endif %}
+
             <div class="scroll-content" id="scroll-content">
+
                 {% block content %}
                 <!-- Default content goes here -->
                 {% endblock %}
@@ -108,6 +129,25 @@
     </script>
     <script src="{% static 'js/mainpage.js' %}"></script>
     <script src="{% static "js/profile.js" %}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Your existing code here
+            {% if error %}
+                document.getElementById("error-message").style.display = "flex";
+                setTimeout(function() {
+                    document.getElementById("error-message").style.display = "none";
+                }, 3500);
+            {% endif %}
+
+            {% if success %}
+                console.log("Success");
+                document.getElementById("success-message").style.display = "flex";
+                setTimeout(function() {
+                    document.getElementById("success-message").style.display = "none";
+                }, 3500);
+            {% endif %}
+        });
+    </script>
 </body>
 
 </html>
