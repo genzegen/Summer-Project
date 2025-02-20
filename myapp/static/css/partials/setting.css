@@ -91,3 +91,6 @@
     display: flex;
     justify-content: center;
 }
+#submit {
+    align-self: center;
+}

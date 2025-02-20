@@ -91,6 +91,8 @@ document.addEventListener("DOMContentLoaded", function() {
         createRenderer.setSize(window.innerWidth, window.innerHeight);
     });
 
+
+    // creating room
     const createBtn = document.getElementById("create-btn");
     const roomLength = document.getElementById("room-length");
     const roomBreadth = document.getElementById("room-breadth");
@@ -104,16 +106,33 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.querySelectorAll(".room-template-btn").forEach(button => {
         button.addEventListener("click", function () {
+
+            document.querySelectorAll(".room-template-btn").forEach(btn => btn.classList.remove('active'));
+    
+            this.classList.add('active');
+    
             const templateId = this.id;
+    
             if (templates[templateId]) {
                 roomLength.value = templates[templateId].length;
                 roomBreadth.value = templates[templateId].breadth;
             }
-        })
+        });
     });
+    
+
+    // Creating floor
+    let floorMesh;
+    let walls = [];
+    let roomCreated = false;
 
     // Create button functionality
     createBtn.addEventListener("click", event => {
+        if (roomCreated) {
+            showErrorDialog("A room has already been created. Please reset to create a new one.");
+            return;
+        }
+
         const length = parseFloat(roomLength.value) * 2;
         const breadth = parseFloat(roomBreadth.value) * 2;
 
@@ -121,9 +140,12 @@ document.addEventListener("DOMContentLoaded", function() {
         createFloor(length, breadth);
     });
 
-    // Creating floor
-    let floorMesh;
+    function showErrorDialog(message) {
+        alert(message);
+    }
+
     const floorColorInput = document.getElementById("floor-color");
+    const wallColorInput = document.getElementById("wall-color");
 
     function createFloor (roomLength, roomBreadth) {
         let position = { x: 0, y: 2, z: 0 };
@@ -137,15 +159,56 @@ document.addEventListener("DOMContentLoaded", function() {
         floorMesh.scale.set(scale.x, scale.y, scale.z);
         floorMesh.castShadow = true;
         floorMesh.receiveShadow = true;
+        floorMesh.userData.ground = true;
+        roomCreated = true;
+
+        createWalls(roomLength, roomBreadth);
+        walls.forEach(wall => createScene.add(wall));
+
         createRoomGrid(roomLength, roomBreadth);
         createScene.add(floorMesh);
     }
+
+    // Function to create walls
+    function createWalls(roomLength, roomBreadth) {
+        const wallMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color(wallColorInput.value) });
+    
+        // Create walls for the room
+        walls = [
+            new THREE.Mesh(new THREE.BoxGeometry(roomLength, roomHeight, 1), wallMaterial),  // Back Wall
+            new THREE.Mesh(new THREE.BoxGeometry(1, roomHeight, roomBreadth), wallMaterial),  // Left Wall
+            new THREE.Mesh(new THREE.BoxGeometry(1, roomHeight, roomBreadth), wallMaterial)   // Right Wall
+        ];
+    
+        // Positioning the walls
+        walls[0].position.set(0, roomHeight / 2 + 2, -roomBreadth / 2 - 0.5); // Back wall
+        walls[1].position.set(-roomLength / 2 - 0.5, roomHeight / 2 + 2, 0); // Left wall
+        walls[2].position.set(roomLength / 2 + 0.5, roomHeight / 2 + 2, 0);  // Right wall
+    
+        // Name the walls for easy identification
+        walls[0].name = "wall-back";
+        walls[1].name = "wall-left";
+        walls[2].name = "wall-right";
+    
+        // Add floor and walls to the scene
+        createScene.add(floorMesh, ...walls);
+
+        console.log('Room with walls created!');
+    }
+    
 
     floorColorInput.addEventListener("input", () => {
         if(floorMesh) {
             floorMesh.material.color.set(floorColorInput.value);
         }
     })
+
+    wallColorInput.addEventListener("input", () => {
+        const newColor = wallColorInput.value;
+        walls.forEach(wall => {
+            wall.material.color.set(newColor);
+        });
+    });
 
     // Grid above floor
     let roomGrid = null; // global for toggling
@@ -201,9 +264,48 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    const resetBtn = document.getElementById("clear-btn");
+    resetBtn.addEventListener("click", (event) => {
+        resetRoom();
+    })
+
+    function resetRoom() {
+        if (floorMesh) {
+            // Remove and dispose of the floor
+            createScene.remove(floorMesh);
+            floorMesh.geometry.dispose();
+            floorMesh.material.dispose();
+            floorMesh = null;
+            console.log("floor removed");
+        }
+    
+        // Remove and dispose of the walls
+        walls.forEach(wall => {
+            createScene.remove(wall);
+            wall.geometry.dispose();
+            wall.material.dispose();
+            console.log("walls removed");
+        });
+    
+        // Clear the walls array
+        walls = [];
+    
+        // Remove the room grid if it exists
+        if (roomGrid) {
+            createScene.remove(roomGrid);
+            roomGrid.geometry.dispose();
+            roomGrid.material.dispose();
+            roomGrid = null;
+            console.log("grid removed");
+        }
+    
+        // Reset roomCreated flag
+        roomCreated = false;
+    }
+
     // Models import
+
     const loader = new GLTFLoader();
-    const draggableObjects = [];
 
     function addFurniture(modelPath, position) {
         loader.load(modelPath, function (gltf) {
@@ -236,7 +338,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             // Set position
-            furniture.position.set(position.x, position.y, position.z);
+            furniture.position.set(position.x, 2.52, position.z);
             furniture.name = modelPath;
 
             furniture.traverse((child) => {
@@ -248,6 +350,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             createScene.add(furniture);
             draggableObjects.push(furniture);
+            furniture.userData.draggable = true;
             
         }, undefined, function (error) {
             console.error("Error loading model:", error);
@@ -267,39 +370,74 @@ document.addEventListener("DOMContentLoaded", function() {
             ];
 
             const positions = [
-                { x: 0, y: 2, z: 0 },
-                { x: 2, y: 2, z: 0 },
-                { x: -3, y: 2, z: 0 },
-                { x: 4, y: 2, z: 0 },
-                { x: -4, y: 2, z: 0 },
-                { x: 1, y: 2, z: -2 },
-                { x: -1, y: 2, z: -2 }
+                { x: 0, y: 3, z: 0 },
+                { x: 2, y: 3, z: 0 },
+                { x: -3, y: 3, z: 0 },
+                { x: 4, y: 3, z: 0 },
+                { x: -4, y: 3, z: 0 },
+                { x: 1, y: 3, z: -2 },
+                { x: -1, y: 3, z: -2 }
             ];
 
             addFurniture(furnitureModels[index], positions[index]);
         });
     });
     
-    // Drag controls
-    let floorBounds = {
-        minX: -roomLength / 2,
-        maxX: roomLength / 2,
-        minZ: -roomBreadth / 2,
-        maxZ: roomBreadth / 2
-    };
 
-    const dragControls = new DragControls(draggableObjects, createCamera, createRenderer.domElement);
+    document.getElementById("box").addEventListener("click", event => {
+        createBox();
+    })
 
-    dragControls.addEventListener('drag', function (event) {
-        const object = event.object;
+    function createBox() {
+        let scale = { x: 3, y: 3, z: 3 };
+        let pos = { x: 0, y: 4, z:0 };
 
-        // Constrain the object within the room boundaries (X and Z)
-        object.position.x = Math.max(floorBounds.minX, Math.min(floorBounds.maxX, object.position.x));
-        object.position.z = Math.max(floorBounds.minZ, Math.min(floorBounds.maxZ, object.position.z));
+        let box = new THREE.Mesh(new THREE.BoxGeometry(),
+            new THREE.MeshPhongMaterial({ color: 0xDC145C }));
+        box.position.set(pos.x, pos.y, pos.z);
+        box.scale.set(scale.x, scale.y, scale.z);
 
-        // Optional: Snap the object to the floor (Y axis remains fixed)
-        object.position.y = 2.6; // or whatever height you want the furniture to be at
-    });
+        box.userData.draggable = true;
+        box.userData.name = "BOX";
+        draggableObjects.push(box);
+        createScene.add(box)
+    }
+
+    // dragging
+
+    const draggableObjects = [];
+    let dragControls;
+
+    function setupDragControls() {
+        dragControls = new DragControls(draggableObjects, createCamera, createRenderer.domElement);
+    
+        dragControls.addEventListener('dragstart', (event) => {
+            controls.enabled = false;
+        });
+    
+        dragControls.addEventListener('drag', (event) => {
+            let object = event.object;
+
+            // Get the half dimensions of the room
+            const halfRoomLength = (parseFloat(roomLength.value) * 2) / 2;
+            const halfRoomBreadth = (parseFloat(roomBreadth.value) * 2) / 2;
+
+            const padding = 1.6;
+
+            // Constrain X and Z positions within room boundaries
+            object.position.x = Math.max(-halfRoomLength + padding, Math.min(halfRoomLength - padding, object.position.x));
+            object.position.z = Math.max(-halfRoomBreadth + padding, Math.min(halfRoomBreadth - padding, object.position.z));
+
+            // Keep the box at a fixed height
+            object.position.y = 4;
+        });
+    
+        dragControls.addEventListener('dragend', (event) => {
+            controls.enabled = true;
+        });
+    }
+
+    setupDragControls();
 
     animateCreate();
 });
