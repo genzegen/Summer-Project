@@ -74,6 +74,7 @@
     height: 100px;
     justify-content: center;
     justify-self: center;
+    text-align: center;
     background-color: rgba(255, 255, 255, 0.5);
     overflow: hidden;
 }

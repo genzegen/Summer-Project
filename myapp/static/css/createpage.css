@@ -169,6 +169,11 @@ body {
     overflow: hidden;
     gap: 1vh;
     transition: opacity 0.2s ease;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+.sidebar-content::-webkit-scrollbar {
+    display: none;
 }
 
 .button {
@@ -263,7 +268,7 @@ body {
 
 #furniture-dropdown.show {
     display: grid;
-    height: 46vh;
+    height: auto;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(4, 10vh);
     gap: 5px;

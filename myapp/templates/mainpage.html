@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}BYR3D{% endblock %}</title>  <!-- This is the place to change the title dynamically -->
+    <title>BYR3D | Home</title>
     <link rel="stylesheet" href="{% static 'css/mainpage.css' %}" />
     <link rel="stylesheet" href="{% static 'css/profile.css' %}">
     <link rel="stylesheet" href="{% static 'css/partials/setting.css' %}">
@@ -20,33 +20,41 @@
                 <img src="{% static 'images/logo.png' %}" style="height: 10vh; width: auto" />
                 <a href="">Discover Ideas</a>
                 <a href="">Find Designers</a>
-                <a href="">Help Center</a>
+                <a href="{% url "help" %}">Help Center</a>
             </div>
             <div class="right">
                 <button class="nav-button" id="notification">
                     <img src="{% static 'images/notification.png' %}" />
                 </button>
                 {% comment %} profile section {% endcomment %}
-                <button class="nav-button" id="profile-img"><img src="{{ profile.profile_picture.url}}" alt=""></button>
+                <button class="nav-button" id="profile-img">
+                    {% if profile.profile_picture %}
+                        <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" />
+                    {% else %}
+                        <img src="{% static 'images/default-profile.jpg' %}" alt="Default Profile Picture" />
+                    {% endif %}
+                </button>
                 {% if user.is_authenticated %}
                 <div class="popup" id="profile">
                     <div class="pop-content">
-                        <button id="close-profile">&#10006;</button>
-                        <div class="profile-img">
-                            {% if profile.profile_picture %}
-                                <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" />
-                            {% else %}
-                                <img src="{% static 'images/default-profile.jpg' %}" alt="Default Profile Picture" />
-                            {% endif %}
-                        </div>
-                        <div class="profile-details">
-                            <p style="font-size: 1.5rem;">{{ user.username }}</p>
-                            <p id="about-user">{{ profile.bio }}</p>
-                            <form method="POST" action="{% url 'getStarted' %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="form_type" value="logout">
-                                <button id="logout-btn" class="button" style="width: 14vw; margin-top: 5vh; bottom: 2vh;">Log Out</button>
-                            </form>
+                        <div id="profile-pop-content">
+                            <button id="close-profile">&#10006;</button>
+                            <div class="profile-img">
+                                {% if profile.profile_picture %}
+                                    <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" />
+                                {% else %}
+                                    <img src="{% static 'images/default-profile.jpg' %}" alt="Default Profile Picture" />
+                                {% endif %}
+                            </div>
+                            <div class="profile-details">
+                                <p style="font-size: 1.5rem;">{{ user.username }}</p>
+                                <p id="about-user">{{ profile.bio }}</p>
+                                <form method="POST" action="{% url 'getStarted' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="form_type" value="logout">
+                                    <button id="logout-btn" class="button" style="width: 14vw; margin-top: 5vh; bottom: 2vh;">Log Out</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>

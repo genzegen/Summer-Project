@@ -8,6 +8,8 @@
     <title>BYR3D | Your Project</title>
     <link rel="stylesheet" href="{% static 'css/createpage.css' %}">
     <link rel="stylesheet" href="{% static "css/profile.css" %}">
+    <link rel="stylesheet" href="{% static "css/alertdialogs.css" %}">
+
     <script type="module" src="{% static 'js/three.js-master/build/three.module.js' %}"></script>
 </head>
 
@@ -16,8 +18,89 @@
     <div class="container">
         <div class="main">
             <div class="navbar">
+
+                <div class="error-container">
+                    <div class="error-title">&#9888; Error</div>
+                    <div class="error-content"></div>
+                </div>
+
+                <div class="confirm-container">
+                    <div class="confirm-title">&#9888; Are you sure?</div>
+                    <div class="confirm-content"></div>
+                    <div class="confirm-btns">
+                        <input type="button" id="confirmYes" value="Yes">
+                        <input type="button" id="confirmCancel" value="Cancel">
+                    </div>
+                </div>
+
+                <div class="help-container">
+                    <div class="help-title">
+                        <h1>&#128712; Help and Tips</h1>
+                        <button id="close-help">&#10006;</button>
+                    </div>
+                    <div class="help-content">
+                        <h2>Siderbar Features</h2>
+                        <ol>
+                            <li>Layout
+                                <dl>
+                                    <dt>Use this option to set the dimensions of your room. You can enter the length, and breadth of the room to create a personalized layout.</dt>
+                                    <dt>Additionally, you can choose from templates for your room's layout to get started quickly.</dt>
+                                </dl>
+                            </li>
+                            <li>Import Furnitures
+                                <dl>
+                                    <dt>Browse through the available furniture items and click on them to import them into your room. You can move them around, and position them as needed to customize your design.</dt>
+                                    <dt>Available furniture includes items like beds, chairs, lamps, carpets, computer setup and more.</dt>
+                                </dl>
+                            </li>
+                            <li>Walls and Floors
+                                <dl>
+                                    <dt>Use this option to customize the color of your walls and floor. You can choose colors to match your design preferences for a more realistic look.</dt>
+                                </dl>
+                            </li>
+                            <li>Toggle Grid
+                                <dl>
+                                    <dt>Toggle the grid on the floor of the room to help you with precise placement of furniture and elements. This grid can be turned on or off based on your preference.</dt>
+                                </dl>
+                            </li>
+                            <li>Clear Layout
+                                <dl><dt>If you want to start over or remove all the current elements from the room, simply click Clear Layout. This will remove everything you’ve added to the canvas and reset the room design.</dt></dl>
+                            </li>
+                            <li>Help
+                                <dl>Click here to open this Help Section anytime you need assistance or want to review how to use the platform's features.</dl>
+                            </li>
+                        </ol>
+                        <h2>Navbar Features</h2>
+                        <ol>
+                            <li>Undo
+                                <dt>Made a mistake or want to go back to the previous state? Click on Undo to revert the last action you performed.</dt>
+                            </li>
+                            <li>Redo
+                                <dt>If you've undone an action and wish to restore it, use the Redo button to bring back the previous state.</dt>
+                            </li>
+                            <li>Save
+                                <dt>Once you're satisfied with your design, click Save to save your current room layout. This will store your design, so you can return to it later or share it with others.</dt>
+                            </li>
+                        </ol>
+                        <h2>General Tips</h2>
+                        <ul>
+                            <li>Drag and Drop
+                                <dt>After importing furniture into the room, click and drag them to position them as you like. You can also rotate the furniture to fit your liking.</dt>
+                            </li>
+                            <li>Customizing Color
+                                <dt>Don’t forget to experiment with the Walls and Floor options to create a room that truly reflects your vision!</dt>
+                            </li>
+                        </ul>
+                        If you need further assistance or have any questions, feel free to visit this Help Section again or contact support.
+                    </div>
+                </div>
+
                 <div class="left">
-                    <img src="{% static 'images/logo.png' %}" style="height: 10vh; width: auto" />
+                    <a href="{% url 'mainpage' %}">
+                        <button style="background:none;border:none;">
+                            <img src="{% static 'images/logo.png' %}" style="height: 10vh; width: auto" />
+                        </button>
+                    </a>
                 </div>
                 <div class="right">
                     <button class="undo-redo" id="undo-btn">&#10226;</button>
@@ -25,26 +108,34 @@
                     <button class="nav-button" id="notification">
                         <img src="{% static 'images/notification.png' %}" />
                     </button>
-                    <button class="nav-button" id="profile-img"><img src="{{ profile.profile_picture.url}}" alt=""></button>
-                {% if user.is_authenticated %}
+                    <button class="nav-button" id="profile-img">
+                        {% if profile.profile_picture %}
+                            <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" />
+                        {% else %}
+                            <img src="{% static 'images/default-profile.jpg' %}" alt="Default Profile Picture" />
+                        {% endif %}
+                    </button>
+                    {% if user.is_authenticated %}
                     <div class="popup" id="profile">
                         <div class="pop-content">
-                            <button id="close-profile">&#10006;</button>
-                            <div class="profile-img">
-                                {% if profile.profile_picture %}
-                                    <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" />
-                                {% else %}
-                                    <img src="{% static 'images/default-profile.jpg' %}" alt="Default Profile Picture" />
-                                {% endif %}
-                            </div>
-                            <div class="profile-details">
-                                <p style="font-size: 1.5rem;">{{ user.username }}</p>
-                                <p id="about-user">{{ profile.bio }}</p>
-                                <form method="POST" action="{% url 'getStarted' %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="form_type" value="logout">
-                                    <button id="logout-btn" class="button" style="width: 14vw; margin-top: 5vh; bottom: 2vh;">Log Out</button>
-                                </form>
+                            <div id="profile-pop-content">
+                                <button id="close-profile">&#10006;</button>
+                                <div class="profile-img">
+                                    {% if profile.profile_picture %}
+                                        <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" />
+                                    {% else %}
+                                        <img src="{% static 'images/default-profile.jpg' %}" alt="Default Profile Picture" />
+                                    {% endif %}
+                                </div>
+                                <div class="profile-details">
+                                    <p style="font-size: 1.5rem;">{{ user.username }}</p>
+                                    <p id="about-user">{{ profile.bio }}</p>
+                                    <form method="POST" action="{% url 'getStarted' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="form_type" value="logout">
+                                        <button id="logout-btn" class="button" style="width: 14vw; margin-top: 5vh; bottom: 2vh;">Log Out</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -77,11 +168,16 @@
                             <button class="furniture-icons"><img src="{% static "images/chair1.png" %}"></button>
                             <button class="furniture-icons"><img src="{% static "images/chair2.png" %}"></button>
                             <button class="furniture-icons"><img src="{% static "images/bed.png" %}"></button>
-                            <button class="furniture-icons"><img src="{% static "images/wardrobe.png" %}"></button>
                             <button class="furniture-icons"><img src="{% static "images/lamp.png" %}"></button>
+                            <button class="furniture-icons"><img src="{% static "images/wardrobe.png" %}"></button>
+                            <button class="furniture-icons"><img src="{% static "images/wardrobe2.png" %}"></button>
                             <button class="furniture-icons"><img src="{% static "images/carpet1.png" %}"></button>
                             <button class="furniture-icons"><img src="{% static "images/carpet2.png" %}"></button>
-                            <button class="furniture-icons" id="box"><img src="{% static "images/carpet2.png" %}"></button>
+                            <button class="furniture-icons"><img src="{% static "images/sofa1.png" %}"></button>
+                            <button class="furniture-icons"><img src="{% static "images/sofa2.png" %}"></button>
+                            <button class="furniture-icons"><img src="{% static "images/pc1.png" %}"></button>
+                            <button class="furniture-icons"><img src="{% static "images/table1.png" %}"></button>
+                            <button class="furniture-icons"><img src="{% static "images/table2.png" %}"></button>
                         </div>
 
                         <button class="button" id="color-btn">Walls and Floor</button>

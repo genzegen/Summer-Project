@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BYR3D | Contact Us</title>
+    <link rel="stylesheet" href="{% static "css/contact.css" %}">
+    <script type="module" src="{% static 'js/three.js-master/build/three.module.js' %}"></script>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    <div class="main">
+        <div class="top">
+            <h1>Contact Us</h1>
+        </div>
+        <div class="bottom">
+            <div class="left">
+                <div class="left-container">
+                    <div class="icon">
+                        <img src="{% static "images/address.png" %}" alt="">
+                    </div>
+                    <div class="icon-details">
+                        <h3>Address</h3>
+                        <p>Chhetrapati, Dhalko</br>Kathmandu, Nepal</p>
+                    </div>
+                </div>
+                <div class="left-container">
+                    <div class="icon">
+                        <img src="{% static "images/phone.png" %}" alt="">
+                    </div>
+                    <div class="icon-details">
+                        <h3>Phone</h3>
+                        <p>01-4892969, +977-9808586969</p>
+                    </div>
+                </div>
+                <div class="left-container">
+                    <div class="icon">
+                        <img src="{% static "images/mail.png" %}" alt="">
+                    </div>
+                    <div class="icon-details">
+                        <h3>Email</h3>
+                        <p>byr3dbusiness@mail.com</p>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="right">
+                <h2>Send a message</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="text" name="name" placeholder="Full Name" required>
+                    <input type="email" name="email" placeholder="Email" required>
+                    <textarea name="message" rows="4" placeholder="Enter Your Message" required></textarea>
+                    <input type="submit" value="Send">
+                </form>
+                {% if messages %}
+                    <div id="message-container">
+                        {% for message in messages %}
+                            <p class="message">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script>
+        setTimeout(function() {
+            let messageContainer = document.getElementById("message-container");
+            if (messageContainer) {
+                messageContainer.style.transition = "opacity 0.5s ease-out";
+                messageContainer.style.opacity = "0";
+                setTimeout(() => messageContainer.remove(), 500); // Remove it from DOM
+            }
+        }, 3000);
+    </script>
+    <script type="module" src="{% static 'js/home.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BYR3D | Help</title>
+    <link rel="stylesheet" href="{% static "css/help.css" %}">
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    <header>
+        <h1>Help Center</h1>
+        <p>Find answers to common questions and learn how to use BYR3D effectively.</p>
+    </header>
+    
+    <section class="faq">
+        <h2>Getting Started</h2>
+        <details>
+            <summary>How do I create a new room layout?</summary>
+            <p>To create a new room, go to the dashboard and click on "New Project". Enter your room dimensions and start designing.</p>
+        </details>
+        <details>
+            <summary>What browsers are supported?</summary>
+            <p>BYR3D works best on Chrome, Firefox, and Edge. Safari may have limited support.</p>
+        </details>
+    </section>
+
+    <section class="faq">
+        <h2>Using the Editor</h2>
+        <details>
+            <summary>How do I add objects to my room?</summary>
+            <p>Click on the "Add Object" button, choose a 3D model from the library, and place it in the room.</p>
+        </details>
+        <details>
+            <summary>How can I adjust the lighting?</summary>
+            <p>Go to the "Lighting" panel and modify intensity, color, and position to enhance the realism of your scene.</p>
+        </details>
+    </section>
+
+    <section class="faq">
+        <h2>Troubleshooting</h2>
+        <details>
+            <summary>Why is my project not saving?</summary>
+            <p>Ensure you are logged in and have a stable internet connection. If the issue persists, contact support.</p>
+        </details>
+        <details>
+            <summary>The 3D models are not loading. What should I do?</summary>
+            <p>Try refreshing the page or clearing your browser cache. If the issue continues, check for browser updates.</p>
+        </details>
+    </section>
+    
+    <footer>
+        <p>Need more help? Contact us at <a href="mailto:support@byr3d.com">support@byr3d.com</a></p>
+    </footer>
+
+    <script type="module" src="{% static 'js/home.js' %}"></script>
+</body>
+</html>

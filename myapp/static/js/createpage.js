@@ -22,6 +22,17 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
         console.error("Sidebar button not found!");
     }
+
+    const helpBtn = document.getElementById("help-btn");
+    const helpContainer = document.querySelector(".help-container");
+    const closeHelp = document.getElementById("close-help");
+
+    helpBtn.addEventListener("click", function () {
+        helpContainer.style.display = "flex";
+    });
+    closeHelp.addEventListener("click", function() {
+        helpContainer.style.display = "none";
+    })
 });
 
 // for side bar button functionality

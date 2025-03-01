@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
-from .models import UserProfile
+from .models import *
 from django.contrib import messages
 
 # Create your views here.
@@ -13,6 +13,24 @@ def intro(request):
 
 def about(request):
     return render(request, 'about.html')
+
+def contact(request):
+    if request.method == "POST":
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        message = request.POST.get("message")
+
+        if name and email and message:
+            ContactMessage.objects.create(name=name, email=email, message=message)
+            messages.success(request, "Your message has been sent successfully!")
+            return redirect("contact")  # Redirect to the same page after submission
+        else:
+            messages.error(request, "All fields are required.")
+
+    return render(request, "contact.html")
+
+def help(request):
+    return render(request, 'help.html')
 
 @login_required
 def mainpage(request):
@@ -76,40 +94,57 @@ def templates(request):
 def community(request):
     return render(request, "partials/community.html")
 
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import check_password
+from django.contrib.auth import update_session_auth_hash
+from django.shortcuts import render
+from .models import UserProfile
+
 @login_required
 def settings_view(request):
-
     try:
         profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
         profile = UserProfile.objects.create(user=request.user)
 
     success_message = None
+    error_message = None  # Added error message variable
 
     if request.method == "POST":
         bio = request.POST.get('bio', '').strip()
-
         profile.bio = bio
 
+        # Profile Picture Update
         if "profile_picture" in request.FILES:
             profile.profile_picture = request.FILES['profile_picture']
 
+        # Password Change Handling
         current_password = request.POST.get("current_password")
         new_password = request.POST.get("new_password")
-        if current_password and new_password:
-            if not check_password(current_password, request.user.password):
-                return render(request, "mainpage.html", {"profile": profile, "error": "Current password is incorrect."})
+        confirm_password = request.POST.get("confirm_password")  # Fixed field name
 
-            request.user.set_password(new_password)
-            request.user.save()
-            update_session_auth_hash(request, request.user)
-            success_message = "Password changed successfully."
+        if current_password and new_password and confirm_password:
+            if check_password(current_password, request.user.password):  # Correct order of checks
+                if new_password == confirm_password:
+                    request.user.set_password(new_password)
+                    request.user.save()
+                    update_session_auth_hash(request, request.user)
+                    success_message = "Password changed successfully."
+                else:
+                    error_message = "Passwords do not match."
+            else:
+                error_message = "Current password is incorrect."
 
         profile.save()
 
-        return render(request, "mainpage.html", {"profile": profile, "success": success_message})
+        return render(request, "mainpage.html", {
+            "profile": profile,
+            "success": success_message,
+            "error": error_message
+        })
 
     return render(request, "partials/settings.html", {'profile': profile})
+
 
 
 def createpage(request):

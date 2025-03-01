@@ -1,0 +1,123 @@
+body {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    background-image: linear-gradient(#552c2c, #442f26, #203b55, #182e42);
+    color: white;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+    backdrop-filter: blur(3px);
+    box-sizing: border-box;
+    overflow: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    overflow-y: scroll;
+}
+
+#particleCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+header {
+    text-align: center;
+    padding: 20px;
+    background: rgba(114, 36, 66, 0.507);
+    width: 100%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(3px);
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin: 0;
+}
+
+p {
+    font-size: 1.2rem;
+}
+
+.faq {
+    width: 60%;
+    margin: 20px 0;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(2px);
+}
+
+h2 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+details {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    transition: background 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+details:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+summary {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #4db5ff;
+    text-shadow: 0px 0px 0px 1px black;
+}
+
+summary::marker {
+    color: #4db5ff;
+}
+
+details p {
+    margin-top: 10px;
+    padding-left: 2vw;
+    font-size: 1rem;
+    color: #ddd;
+}
+
+footer {
+    text-align: center;
+    padding: 15px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    position: relative;
+    bottom: 0;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+}
+
+footer a {
+    color: #4db5ff;
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
