@@ -1,6 +1,6 @@
 {
     "files.associations": {
-        "*.html": "django-html",
+        "*.html": "html",
         "*.css": "css",
         "*.js": "javascript"
     },

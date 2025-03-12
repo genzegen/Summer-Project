@@ -140,7 +140,22 @@
                         </div>
                     </div>
                 {% endif %}
+
                     <button class="button" id="save-btn">Save</button>
+                    <div class="popup" id="save-popup">
+                    <button id="close-save">&#10006;</button>
+                        <div class="save-content">
+                            <h1>Save your changes to this project?</h1>
+                            <label for="proj-name">Project Name</label>
+                            <input type="text" id="proj-name" placeholder="Enter project name" required>
+                            <p>Saved at <i><b>"My Projects"</b></i></p>
+                            <div class="save-options">
+                                <button class="button" id="save">Save</button>
+                                <button class="button" id="no-save">Don't Save</button>
+                                <button class="button" id="save-cancel">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="content">
@@ -165,19 +180,32 @@
 
                         <button class="button" id="import-btn" data-dropdown="furniture">Import Furnitures</button>
                         <div class="dropdown-content" id="furniture-dropdown">
-                            <button class="furniture-icons"><img src="{% static "images/chair1.png" %}"></button>
-                            <button class="furniture-icons"><img src="{% static "images/chair2.png" %}"></button>
-                            <button class="furniture-icons"><img src="{% static "images/bed.png" %}"></button>
-                            <button class="furniture-icons"><img src="{% static "images/lamp.png" %}"></button>
-                            <button class="furniture-icons"><img src="{% static "images/wardrobe.png" %}"></button>
-                            <button class="furniture-icons"><img src="{% static "images/wardrobe2.png" %}"></button>
-                            <button class="furniture-icons"><img src="{% static "images/carpet1.png" %}"></button>
-                            <button class="furniture-icons"><img src="{% static "images/carpet2.png" %}"></button>
-                            <button class="furniture-icons"><img src="{% static "images/sofa1.png" %}"></button>
-                            <button class="furniture-icons"><img src="{% static "images/sofa2.png" %}"></button>
-                            <button class="furniture-icons"><img src="{% static "images/pc1.png" %}"></button>
-                            <button class="furniture-icons"><img src="{% static "images/table1.png" %}"></button>
-                            <button class="furniture-icons"><img src="{% static "images/table2.png" %}"></button>
+                            <button class="furniture-icons" data-name="Modern Chair" data-dimensions="2ft x 2ft x 3ft">
+                                <img src="{% static 'images/chair1.png' %}"></button>
+                            <button class="furniture-icons" data-name="Office Chair" data-dimensions="2ft x 2ft x 3.5ft">
+                                <img src="{% static 'images/chair2.png' %}"></button>
+                            <button class="furniture-icons" data-name="Double Bed" data-dimensions="6.5ft x 5ft x 3ft">
+                                <img src="{% static 'images/bed.png' %}"></button>
+                            <button class="furniture-icons" data-name="Standing Lamp" data-dimensions="1.5ft x 1.5ft x 5ft">
+                                <img src="{% static 'images/lamp.png' %}"></button>
+                            <button class="furniture-icons" data-name="Double Wardrobe" data-dimensions="5ft x 2ft x 6.5ft">
+                                <img src="{% static 'images/wardrobe.png' %}"></button>
+                            <button class="furniture-icons" data-name="Single Wardrobe" data-dimensions="3ft x 2ft x 6ft">
+                                <img src="{% static 'images/wardrobe2.png' %}"></button>
+                            <button class="furniture-icons" data-name="Small Carpet" data-dimensions="5ft x 3ft">
+                                <img src="{% static 'images/carpet1.png' %}"></button>
+                            <button class="furniture-icons" data-name="Large Carpet" data-dimensions="8ft x 5ft">
+                                <img src="{% static 'images/carpet2.png' %}"></button>
+                            <button class="furniture-icons" data-name="2-Seater Sofa" data-dimensions="5ft x 3ft x 3ft">
+                                <img src="{% static 'images/sofa1.png' %}"></button>
+                            <button class="furniture-icons" data-name="3-Seater Sofa" data-dimensions="7ft x 3ft x 3ft">
+                                <img src="{% static 'images/sofa2.png' %}"></button>
+                            <button class="furniture-icons" data-name="Computer Setup" data-dimensions="3ft x 2ft x 5ft">
+                                <img src="{% static 'images/pc1.png' %}"></button>
+                            <button class="furniture-icons" data-name="Display Table" data-dimensions="4ft x 2ft x 1.5ft">
+                                <img src="{% static 'images/table1.png' %}"></button>
+                            <button class="furniture-icons" data-name="Study Table" data-dimensions="6ft x 3ft x 3ft">
+                                <img src="{% static 'images/table2.png' %}"></button>
                         </div>
 
                         <button class="button" id="color-btn">Walls and Floor</button>

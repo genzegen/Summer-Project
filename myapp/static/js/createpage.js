@@ -33,6 +33,17 @@ document.addEventListener("DOMContentLoaded", function () {
     closeHelp.addEventListener("click", function() {
         helpContainer.style.display = "none";
     })
+
+    const saveBtn = document.getElementById("save-btn");
+    const closeBtn = document.getElementById("close-save");
+    const savePopup = document.getElementById("save-popup");
+
+    saveBtn.addEventListener("click", function() {
+        savePopup.style.display = "flex";
+    });
+    closeBtn.addEventListener("click", function() {
+        savePopup.style.display = "none";        
+    });
 });
 
 // for side bar button functionality

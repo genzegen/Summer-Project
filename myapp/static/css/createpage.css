@@ -162,7 +162,7 @@ body {
 .sidebar-content {
     padding-top: 10%;
     width: 86%;
-    height: 100%;
+    height: 75%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -179,7 +179,7 @@ body {
 .button {
     margin: 1%;
     width: 20vw;
-    height: 8vh;
+    min-height: 8vh;
     border: none;
     border-radius: 10px;
     background: none;
@@ -268,6 +268,7 @@ body {
 
 #furniture-dropdown.show {
     display: grid;
+    width: 90%;
     height: auto;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(4, 10vh);
@@ -276,6 +277,7 @@ body {
 }
 
 .furniture-icons {
+    position: relative;
     justify-content: center;
     align-content: center;
     width: 7.5vw;
@@ -283,12 +285,33 @@ body {
     border: none;
     background-color: rgba(255, 255, 255, 0.068);
     border-radius: 10px;
+    overflow: hidden;
 }
 .furniture-icons:hover {
-    background-color: rgba(202, 202, 202, 0.068);
+    background-color: rgba(224, 224, 224, 0.173);
 }
 .furniture-icons:active {
-    background-color: rgba(122, 122, 122, 0.068);
+    background-color: rgba(255, 255, 255, 0.068);
+}
+.furniture-icons::after {
+    content: attr(data-name) " - " attr(data-dimensions);
+    position: fixed;
+    left: 9vw;
+    top: 3vh;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    white-space: nowrap;
+    font-size: 0.8rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+}
+.furniture-icons:hover::after {
+    opacity: 1;
 }
 
 .furniture-icons img {
@@ -422,7 +445,7 @@ input:checked+.slider:before {
     text-align: center;
 }
 
-#close-popup {
+#close-popup, #close-save {
     font-size: 1.2rem;
     position: absolute;
     right: 1.9vw;
@@ -431,7 +454,7 @@ input:checked+.slider:before {
     color: white;
 }
 
-#close-popup:hover {
+#close-popup:hover, #close-save:hover {
     color: rgb(184, 184, 184);
 }
 
@@ -445,6 +468,46 @@ input:checked+.slider:before {
     justify-content: center;
     align-items: center;
 }
+
+#save-popup {
+    height: 45vh;
+    position: fixed;
+    left: 40%;
+    top: 20vh;
+}
+.save-content {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 3vh;
+    height: auto;
+    gap: 1vh;
+    height: auto;
+}
+.save-content h1 {
+    font-size: 1.6rem;
+}
+.save-content input[type="text"] {
+    width: 80%;
+    min-height: 3vh;
+    padding: 2%;
+    border-radius: 14px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: 1.1rem;
+}
+
+.save-options {
+    display: flex;
+    flex-direction: row;
+}
+#save, #no-save, #save-cancel {
+    width: 10vw;
+    padding: 1vh 2vw;
+    text-align: center;
+}
+
 .toolbar{
     display: flex;
     flex-direction: row;

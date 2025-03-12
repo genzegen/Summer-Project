@@ -57,6 +57,7 @@
 .security input[type="password"] {
     height: 30px;
     padding: 6px;
+    border-radius: 14px;
 }
 .security ::placeholder {
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
@@ -87,6 +88,8 @@
 
 .customize textarea {
     resize: none;
+    padding: 6px;
+    border-radius: 14px;
 }
 .hello {
     display: flex;
