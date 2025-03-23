@@ -37,12 +37,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const saveBtn = document.getElementById("save-btn");
     const closeBtn = document.getElementById("close-save");
     const savePopup = document.getElementById("save-popup");
+    const cancelSave = document.getElementById("save-cancel");
 
     saveBtn.addEventListener("click", function() {
         savePopup.style.display = "flex";
     });
     closeBtn.addEventListener("click", function() {
         savePopup.style.display = "none";        
+    });
+    cancelSave.addEventListener("click", function() {
+        savePopup.style.display = "none";
     });
 });
 

@@ -6,5 +6,6 @@
     },
     "emmet.includeLanguages": {
         "django-html": "html"
-    }
+    },
+    "javascript.validate.enable": false
 }

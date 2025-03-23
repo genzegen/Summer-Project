@@ -37,6 +37,8 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => {
                 if (scrollContent) {
                     scrollContent.innerHTML = data;
+                    attachScreenshotModalEvents();
+                    attachPostButtonEvents();
                 } else {
                     console.error("scroll-content element not found.");
                 }
@@ -99,4 +101,101 @@ document.addEventListener("DOMContentLoaded", function () {
         projTitle.setAttribute("placeholder", "Project Name");
     });
 
+    // FOR SCREENSHOT
+    function attachScreenshotModalEvents() {
+        const modal = document.getElementById("screenshot-modal");
+        const modalImg = document.getElementById("modal-image");
+        const closeModal = document.querySelector(".close-modal");
+    
+        if (!modal || !modalImg || !closeModal) {
+            console.error("Modal elements not found!");
+            return;
+        }
+    
+        // Remove existing event listeners (to prevent duplicates)
+        document.querySelectorAll(".open-screenshot-btn").forEach(button => {
+            button.removeEventListener("click", openScreenshotModal);
+            button.addEventListener("click", openScreenshotModal);
+        });
+    
+        function openScreenshotModal() {
+            const roomDiv = this.closest(".screenshot-item");
+            const imageUrl = roomDiv.querySelector("img").src;
+            modalImg.src = imageUrl;
+            modal.style.display = "flex";
+        }
+    
+        closeModal.onclick = () => modal.style.display = "none";
+    
+        modal.onclick = (event) => {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
+
+        document.querySelectorAll(".download-screenshot-btn").forEach(button => {
+            button.removeEventListener("click", downloadScreenshot);
+            button.addEventListener("click", downloadScreenshot);
+        });
+    
+        function downloadScreenshot() {
+            const roomDiv = this.closest(".screenshot-item");
+            const imageUrl = roomDiv.querySelector("img").src;
+            const fileName = roomDiv.dataset.title.replace(/\s+/g, "_") + ".jpg"; // Set filename
+    
+            const link = document.createElement("a");
+            link.href = imageUrl;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+    }
+
+    function attachPostButtonEvents() {
+        document.querySelectorAll('.post-button').forEach(button => {
+            button.addEventListener('click', async function () {
+                const roomId = this.getAttribute('data-room-id');
+                const description = prompt('Enter a description for your post:');
+                
+                try {
+                    const response = await fetch(`/post-project/${roomId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCSRFToken(), // Use a function to get the token
+                        },
+                        body: JSON.stringify({ description: description }),
+                    });
+    
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        alert('Project posted successfully!');
+                    } else {
+                        alert('Failed to post project: ' + result.message);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Failed to post project.');
+                }
+            });
+        });
+    }
+
+    function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith('csrftoken=')) {
+                    cookieValue = decodeURIComponent(cookie.substring('csrftoken='.length));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
 });

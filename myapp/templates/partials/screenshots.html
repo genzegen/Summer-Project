@@ -1,0 +1,28 @@
+{% load static %}
+<div id="screenshot-gallery">
+    <h2>Your Room Design Screenshots</h2>
+
+    <div id="screenshot-modal" class="model">
+        <span class="close-modal">&times;</span>
+        <img id="modal-image" class="modal-content">
+    </div>
+
+    <div id="screenshots-list">
+        {% for room in rooms %}
+            {% if room.screenshot %}
+                <div class="screenshot-item" data-title="{{ room.title }}" data-created="{{ room.created_at|date:'U' }}">
+                    <img src="{{ room.screenshot.url }}" alt="Screenshot for {{ room.title }}">
+                    <div class="screenshot-info">
+                        <span>{{ room.title }}</span>
+                        <div class="buttons-right-row">
+                            <button class="open-screenshot-btn" data-room-id="{{ room.room_id }}">Open</button>
+                            <button class="download-screenshot-btn" data-room-id="{{ room.rooom_id }}">Download</button>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% empty %}
+            <p>No screenshots found.</p>
+        {% endfor %}
+    </div>
+</div>

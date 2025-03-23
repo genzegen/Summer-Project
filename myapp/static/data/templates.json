@@ -1,0 +1,181 @@
+[
+    {
+        "id": 29,
+        "title": "1: Simple Bedroom",
+        "length": 12,
+        "breadth": 10,
+        "height": 15,
+        "floor_color": "#998970",
+        "wall_color": "#e7cfb4",
+        "furniture": [
+            {
+                "model": "/static/models/furnitures/lamp.glb",
+                "position": { "x": -10.474996981132078, "y": 3.4999999999999996, "z": -8.474996995925903 },
+                "rotation": { "x": 0, "y": 0, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/wardrobe.glb",
+                "position": { "x": 1.112603181563027, "y": 4.500000000000001, "z": -8.153291121909204 },
+                "rotation": { "x": 0, "y": 3.1000000000000014, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/carpet2.glb",
+                "position": { "x": -0.47010112289403166, "y": 0.5260524983202228, "z": -1.845987982926431 },
+                "rotation": { "x": 0, "y": 0, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/pc.glb",
+                "position": { "x": -9.184953120680568, "y": 2.5920975007901155, "z": -3.2403103444015784 },
+                "rotation": { "x": 0, "y": 0, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/bed.glb",
+                "position": { "x": 7.7876164436340325, "y": 2.447949602038489, "z": -4.699999999999999 },
+                "rotation": { "x": 0, "y": 0, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            }
+        ],
+        "description": "A minimalist bedroom with a cozy aesthetic, featuring a desktop setup, a comfortable bed, and essential furniture. This space invites relaxation and focus in a serene environment.",
+        "template_id": "1",
+        "images": ""
+    },
+    {
+        "id": 30,
+        "title": "2: A Double Bedroom",
+        "length": 16,
+        "breadth": 14,
+        "height": 15,
+        "floor_color": "#90877a",
+        "wall_color": "#743945",
+        "furniture": [
+            {
+                "model": "/static/models/furnitures/bed.glb",
+                "position": { "x": -11.787616443634032, "y": 2.4479497303511266, "z": -8.7 },
+                "rotation": { "x": 0, "y": 0, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/bed.glb",
+                "position": { "x": 11.787616443634032, "y": 2.4479497303511284, "z": -8.7 },
+                "rotation": { "x": 0, "y": 0, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/wardrobe.glb",
+                "position": { "x": -14.220131881194593, "y": 4.500000654857677, "z": 5.7985250167142475 },
+                "rotation": { "x": 0, "y": -1.6000000000000003, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/wardrobe.glb",
+                "position": { "x": 14.220131881194593, "y": 4.500000654857677, "z": 5.594464059942606 },
+                "rotation": { "x": 0, "y": 1.6000000000000003, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/table1.glb",
+                "position": { "x": -0.5348327086533997, "y": 3.6630876010049622, "z": -12.542540979385375 },
+                "rotation": { "x": 0, "y": 0, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/lamp.glb",
+                "position": { "x": -5.341634377528175, "y": 3.518017647260697, "z": -12.474996995925903 },
+                "rotation": { "x": 0, "y": 0, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/lamp.glb",
+                "position": { "x": 4.95662012013188, "y": 3.518017647260697, "z": -12.474996995925903 },
+                "rotation": { "x": 0, "y": 0, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/carpet2.glb",
+                "position": { "x": -0.5667431776733767, "y": 0.5352955984508715, "z": -6.114032273225693 },
+                "rotation": { "x": 0, "y": 0, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            }
+        ],
+        "description": "A spacious bedroom for two, equipped with two beds, wardrobes, and cozy lighting. Perfect for creating a relaxing and functional atmosphere with ample room for movement and comfort.",
+        "template_id": "2"
+    },
+    {
+        "id": 31,
+        "title": "3: A Couples Room",
+        "length": 16,
+        "breadth": 14,
+        "height": 15,
+        "floor_color": "#c7ad85",
+        "wall_color": "#c86ab4",
+        "furniture": [
+            {
+                "model": "/static/models/furnitures/bed.glb",
+                "position": { "x": 10.58789225388717, "y": 2.4479497303511266, "z": -9.643287060576487 },
+                "rotation": { "x": 0, "y": -1.6000000000000003, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/bed.glb",
+                "position": { "x": 10.58789225388717, "y": 2.447949730351128, "z": -2.208768946813371 },
+                "rotation": { "x": 0, "y": -1.6000000000000003, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/wardrobe.glb",
+                "position": { "x": -13.26866066351656, "y": 4.500000654857676, "z": -12.153291121909206 },
+                "rotation": { "x": 0, "y": 3.2000000000000015, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/wardrobe2.glb",
+                "position": { "x": -8.457067354431329, "y": 4.500000038056635, "z": -12.450463962554931 },
+                "rotation": { "x": 0, "y": 0, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/table1.glb",
+                "position": { "x": -3.4913204400364526, "y": 3.6630876010049622, "z": -12.542540979385375 },
+                "rotation": { "x": 0, "y": 0, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/table2.glb",
+                "position": { "x": -13.613254227013122, "y": 2.934421420097351, "z": 3.7225508487190417 },
+                "rotation": { "x": 0, "y": 1.6000000000000003, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/chair2.glb",
+                "position": { "x": -9.518306437823174, "y": 2.9057813253778706, "z": 2.4354881169228726 },
+                "rotation": { "x": 0, "y": -0.4, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/carpet2.glb",
+                "position": { "x": -10.936599301115445, "y": 0.5352955984508716, "z": -6.042335991424963 },
+                "rotation": { "x": 0, "y": 0, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/sofa2.glb",
+                "position": { "x": 13.600864146157882, "y": 2.1166375207924797, "z": 7.310643203462484 },
+                "rotation": { "x": 0, "y": -1.6000000000000003, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            },
+            {
+                "model": "/static/models/furnitures/carpet2.glb",
+                "position": { "x": 7.42810213109571, "y": 0.5352955984508716, "z": 6.490302174395751 },
+                "rotation": { "x": 0, "y": 0, "z": 0 },
+                "scale": { "x": 1, "y": 1, "z": 1 }
+            }
+        ],
+        "description": "A thoughtfully designed couples' retreat, blending personal style and comfort. Featuring two beds, wardrobes, and intimate furniture arrangements, this room creates a warm, inviting space for partners.",
+        "template_id": "3"
+    }
+]
+

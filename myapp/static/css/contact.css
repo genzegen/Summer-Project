@@ -34,7 +34,7 @@ body {
     height: 10vh;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-around;
 }
 
 .top h1 {
@@ -209,5 +209,52 @@ body {
     background: rgba(77, 255, 77, 0.2);
     padding: 8px;
     border-radius: 6px;
+    width: 85%;
+}
+
+/* Style for the buttons to toggle between forms */
+.form-toggle {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.form-toggle button {
+    background-color: #4db5ff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    margin: 0 10px;
+    transition: background-color 0.3s ease;
+}
+
+.form-toggle button.active {
+    background-color: #3391cc;
+}
+
+.form-toggle button:hover {
+    background-color: #3a9fe0;
+}
+
+.message-form {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 20px;
+}
+
+#requestModelForm {
+    display: none;
+}
+
+#contactForm {
+    display: block;
+}
+
+.right form input,
+.right form textarea {
     width: 85%;
 }

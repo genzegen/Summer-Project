@@ -1,1 +1,38 @@
-Templates
+{% load static %}
+<div class="my-projects-container">
+    <div class="my-projects">
+        <div class="project-title"><h2>Try these Templates</h2></div>
+        <div class="projects">
+            {% for template in templates %}
+            <div class="project">
+                <div class="thumbnail"style="height: 200px;">
+                    {% if forloop.first %}
+                        <img src="{% static 'images/template1.png' %}" alt="Template 1" style="width: 100%; height: auto; object-fit: contain; border-radius: 8px;">
+                    {% elif forloop.counter == 2 %}
+                        <img src="{% static 'images/template2.png' %}" alt="Template 2" style="width: 100%; height: auto; object-fit: contain; border-radius: 8px;">
+                    {% elif forloop.counter == 3 %}
+                        <img src="{% static 'images/template3.png' %}" alt="Template 3" style="width: 100%; height: auto; object-fit: contain; border-radius: 8px;">
+                    {% endif %}
+                </div>
+                
+                <div class="title-description">
+                    <p><b>{{ template.title }}</b></p>
+                </div>
+                <p>Description: <i>{{ template.description }}</i></p>
+                <div class="button-row" style="justify-content: center;">
+                    <form action="{% url 'templates' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="template_id" value="{{ template.template_id }}">
+                        <button type="submit" class="button">Use this template</button>
+                    </form>
+                </div>
+            </div>            
+            {% empty %}
+            <div class="empty-projects">
+                <p>No templates found.</p>
+                <img src="{% static 'images/empty.png' %}" alt="">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

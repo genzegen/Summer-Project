@@ -12,7 +12,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 camera.position.z = 5;
 
 // Particle system setup
-const particleCount = 800;
+const particleCount = 600;
 const particles = new THREE.BufferGeometry();
 const positions = new Float32Array(particleCount * 3);
 const velocities = new Float32Array(particleCount * 3);

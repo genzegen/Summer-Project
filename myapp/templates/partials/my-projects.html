@@ -1,1 +1,74 @@
-My Projects
+{% load static %}
+<div class="my-projects-container">
+    <div class="my-projects">
+        <div class="project-title"><h2>My Projects</h2></div>
+        <div class="projects">
+            {% for project in user_projects %}
+            <div class="project">
+                <div class="thumbnail">
+                    {% if project.screenshot %}
+                        <img src="{{ project.screenshot.url }}" alt="Project Screenshot" class="thumbnail-img">
+                    {% else %}
+                        <div class="no-thumbnail">
+                            <h2>No Preview Available</h2>
+                            <p>Take a screen shot of your room.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="title-description">
+                    <p><b>{{ project.title }}</b></p>
+                    <p style="font-size: 1.05em;">{{ project.created_at|date:"F j, Y" }}</p>
+                </div>
+                <p>Description: <i>{{ project.description }}</i></p>
+                <div class="button-row">
+                    <a href="{% url 'createpage' project.room_id %}">
+                        <button class="action-button">Open</button>
+                    </a>
+                    <button class="action-button post-button" data-room-id="{{ project.room_id }}">Post</button>
+                    <form method="POST" action="{% url 'delete_project' project.room_id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" onclick="return confirm('Are you sure you want to delete this project?');">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-projects">
+                <p>No projects found.</p>
+                <img src="{% static 'images/empty.png' %}" alt="">
+                <p>Press New Project and Get Started</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add event listeners to all "Post" buttons
+    document.querySelectorAll('.post-button').forEach(button => {
+        button.addEventListener('click', async function () {
+            const roomId = this.getAttribute('data-room-id');
+            const description = prompt('Enter a description for your post:'); // Optional: Allow custom description
+
+            try {
+                const response = await fetch(`/post-project/${roomId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({ description: description }),
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    alert('Project posted successfully!');
+                } else {
+                    alert('Failed to post project: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to post project.');
+            }
+        });
+    });
+</script>

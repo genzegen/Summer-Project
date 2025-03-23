@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="{% static 'css/mainpage.css' %}" />
     <link rel="stylesheet" href="{% static 'css/profile.css' %}">
     <link rel="stylesheet" href="{% static 'css/partials/setting.css' %}">
+    <link rel="stylesheet" href="{% static 'css/partials/my-projects.css' %}">
+    <link rel="stylesheet" href="{% static 'css/partials/screenshots.css' %}">
     <script type="module" src="/static/js/three.js-master/build/three.module.js?v=1.0"></script>
 </head>
 
@@ -17,9 +19,11 @@
     <div class="main">
         <div class="navbar">
             <div class="left">
-                <img src="{% static 'images/logo.png' %}" style="height: 10vh; width: auto" />
-                <a href="">Discover Ideas</a>
-                <a href="">Find Designers</a>
+                <a href="{% url 'mainpage' %}">
+                    <img src="{% static 'images/logo.png' %}" style="height: 10vh; width: auto" />
+                </a>
+                <a href="{% url 'community' %}">Discover Ideas</a>
+                <a href="{% url 'contact' %}">Contact Us</a>
                 <a href="{% url "help" %}">Help Center</a>
             </div>
             <div class="right">
@@ -60,47 +64,44 @@
                 </div>
                 {% endif %}
                 <button class="nav-button" id="new-proj">+ New Project</button>
+
                 <div class="popup" id="new-project-popup">
                     <div class="pop-content">
                         <button id="close-popup">&#10006;</button>
-                        <h1 style="
-                            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial,
-                            sans-serif; font-size: 1.6rem;
-                        ">
+                        <h1 style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; font-size: 1.6rem;">
                             Create your project
                         </h1>
-                        <div style="display: flex; flex-direction: column; align-items: start;">
-                            <p style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">
-                                Give an unique name for your project</p>
-                            <input id="project-title" type="text" placeholder="Project Name" style="
-                                font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial,
-                                sans-serif; width: 20vw; height: 3vh; font-size: 1.1rem; padding: 1%;
+
+                        <form method="POST" action="{% url 'mainpage' %}" style="display: flex; flex-direction: column; align-items: start;">
+                            {% csrf_token %}
+                            <p style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">Give a unique name for your project</p>
+                            <input id="project-title" name="title" type="text" placeholder="Project Name" required style="
+                                font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; width: 20vw; height: 3vh; font-size: 1.1rem; padding: 1%;
                             " /><br>
+
                             <p style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">Add description</p>
-                            <textarea type="text" placeholder="About your project (Max 300 letters)" style="
-                                font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial,
-                                sans-serif; width: 24vw; height: 15vh; font-size: 1.1rem; padding: 1.5%; text-align: left;
-                            " maxlength="300" /></textarea>
-                        </div>
-                        <a href="{% url 'createpage' %}">
-                            <button id="create-proj-btn" class="button" style="width: 14vw; margin-top: 5%;">Create Project</button>
-                        </a>
+                            <textarea name="description" placeholder="About your project (Max 300 letters)" maxlength="300" required style="
+                                font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; width: 24vw; height: 15vh; font-size: 1.1rem; padding: 1.5%; text-align: left;
+                            "></textarea>
+
+                            <button type="submit" id="create-proj-btn" class="button" style="width: 14vw; margin-top: 5%;">Create Project</button>
+                        </form>
                     </div>
                 </div>
+
             </div>
         </div>
         <div class="content">
             <div class="sidebar">
                 <div class="sidebar-content">
-                    <button class="button" data-page="{% url 'home' %}">Home</button>
                     <button class="button" data-page="{% url 'my-projects' %}">
                         My Projects
                     </button>
                     <button class="button" data-page="{% url 'templates' %}">
                         Templates
                     </button>
-                    <button class="button" data-page="{% url 'community' %}">
-                        Community
+                    <button class="button" data-page="{% url 'screenshots' %}">
+                        Screenshots
                     </button>
                     <button class="button" data-page="{% url 'settings' %}">
                         Manage Your Account
@@ -128,15 +129,14 @@
                 {% block content %}
                 <!-- Default content goes here -->
                 {% endblock %}
+
             </div>
         </div>
     </div>
     <script type="module" src="{% static 'js/home.js' %}"></script>
-    <script>
-        var homeUrl = "{% url 'home' %}";
-    </script>
+    <script>var homeUrl = "{% url 'my-projects' %}";</script>
     <script src="{% static 'js/mainpage.js' %}"></script>
-    <script src="{% static "js/profile.js" %}"></script>
+    <script src="{% static 'js/profile.js' %}"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             // Your existing code here
@@ -155,7 +155,9 @@
                 }, 3500);
             {% endif %}
         });
+    
     </script>
+
 </body>
 
 </html>

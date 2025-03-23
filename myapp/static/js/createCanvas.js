@@ -3,7 +3,7 @@ import { OrbitControls } from '/static/js/three.js-master/examples/jsm/controls/
 import { GLTFLoader } from '/static/js/three.js-master/examples/jsm/loaders/GLTFLoader.js';
 import { DragControls } from '/static/js/three.js-master/examples/jsm/controls/DragControls.js';
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
     const createCanvas = document.getElementById("createCanvas");
     if (!createCanvas) {
         console.error("Canvas element not found!");
@@ -12,7 +12,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const createScene = new THREE.Scene();
     const createCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const createRenderer = new THREE.WebGLRenderer({ canvas: createCanvas });
+    const createRenderer = new THREE.WebGLRenderer({
+        canvas: createCanvas,
+        preserveDrawingBuffer: true
+    });
 
     // Fog
     createScene.fog = new THREE.FogExp2(0x040c24, 0.008);
@@ -28,6 +31,8 @@ document.addEventListener("DOMContentLoaded", function () {
     controls.screenSpacePanning = false;
     controls.maxPolarAngle = Math.PI / 2.08;
     controls.minPolarAngle = Math.PI / 8;
+    controls.maxDistance = 70;
+    controls.minDistance = 10;
 
     // Background grid
     const gridSize = 1000;
@@ -93,11 +98,207 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let undoStack = [];
     let redoStack = [];
-    function undo() {
 
+    const ActionType = {
+        MOVE: 'move',
+        ROTATE: 'rotate',
+        RESET: 'reset',
+        ADD: 'add',
+        DELETE: 'delete',
+        SCALE: 'scale',
     }
-    function redo() {
+
+    function saveScaleAction(object, previousScale, newScale) {
+        const action = {
+            type: ActionType.SCALE,
+            object,
+            data: { previousScale, newScale },
+        };
+        undoStack.push(action);
+        redoStack = [];
+    }
+
+    function saveMoveAction(object, previousPosition, newPosition) {
+        const action = {
+            type: ActionType.MOVE,
+            object,
+            data: {previousPosition, newPosition},
+        };
+        undoStack.push(action);
+        redoStack = [];
+    }
+
+    function saveRotateAction(object, previousRotation, newRotation) {
+        const action = {
+            type: ActionType.ROTATE,
+            object,
+            data: { previousRotation, newRotation },
+        };
+        undoStack.push(action);
+        redoStack = [];
+    }
+
+    function showConfirmDialog(message) {
+        return new Promise((resolve) => {
+            const confirmContainer = document.querySelector(".confirm-container");
+            const confirmMessage = document.querySelector(".confirm-content");
+            const confirmYes = document.getElementById("confirmYes");
+            const confirmCancel = document.getElementById("confirmCancel");
+
+            confirmMessage.textContent = message;
+            confirmContainer.style.display = "flex";
+
+            confirmYes.onclick = () => {
+                confirmContainer.style.display = "none";
+                resolve(true);
+            };
+
+            confirmCancel.onclick = () => {
+                confirmContainer.style.display = "none";
+                resolve(false);
+            };
+        });
+    }
+
+    function saveRoomState() {
+        const snapshot = {
+            floorMesh: floorMesh ? floorMesh.clone() : null,
+            walls: walls.map(wall => wall.clone()),
+            draggableObjects: draggableObjects.map(obj => obj.clone()),
+            roomGrid: roomGrid ? roomGrid.clone() : null,
+            selectedObject: selectedObject ? selectedObject.clone() : null,
+            roomCreated: roomCreated,
+        };
+        return snapshot;
+    }
+
+    function resetScene() {
+        // Remove the floor mesh if it exists
+        if (floorMesh) {
+            createScene.remove(floorMesh);
+            floorMesh = null;
+        }
+    
+        // Remove all walls
+        if (walls.length > 0) {
+            walls.forEach(wall => {
+                if (wall.parent === createScene) {
+                    createScene.remove(wall);
+                }
+            });
+            walls = []; // Clear the walls array
+        }
+    
+        // Remove all draggable objects
+        draggableObjects.forEach(obj => {
+            createScene.remove(obj);
+        });
+        draggableObjects = []; // Clear the draggable objects array
+    
+        // Remove the room grid if it exists
+        if (roomGrid) {
+            createScene.remove(roomGrid);
+            roomGrid = null;
+        }
+    
+        // Deselect and remove highlight from the selected object
+        if (selectedObject) {
+            selectedObject.traverse(child => {
+                if (child.isMesh) {
+                    child.material.emissive.set(0x000000); // Remove highlight
+                }
+            });
+            selectedObject = null;
+        }
+    
+        // Reset the roomCreated flag
+        roomCreated = false;
+    }
+
+    function restoreRoomState(snapshot) {
+        // Restore the floor mesh
+        if (snapshot.floorMesh) {
+            createScene.add(snapshot.floorMesh);
+            floorMesh = snapshot.floorMesh;
+        }
+    
+        // Restore the walls
+        snapshot.walls.forEach(wall => {
+            createScene.add(wall);
+        });
+        walls = snapshot.walls;
+    
+        // Restore the draggable objects
+        snapshot.draggableObjects.forEach(obj => {
+            createScene.add(obj);
+        });
+        draggableObjects = snapshot.draggableObjects;
+        setupDragControls();
+    
+        // Restore the room grid
+        if (snapshot.roomGrid) {
+            createScene.add(snapshot.roomGrid);
+            roomGrid = snapshot.roomGrid;
+        }
+    
+        // Restore the selected object
+        if (snapshot.selectedObject) {
+            selectedObject = snapshot.selectedObject;
+        }
+    
+        // Restore the roomCreated flag
+        roomCreated = snapshot.roomCreated;
+    }
+
+    async function resetRoom() {
+        const confirmReset = await showConfirmDialog("Are you sure you want to reset everything? This will remove all objects in the room.");
+        if (!confirmReset) return;
         
+        const snapshot = saveRoomState();
+        undoStack.push({ type: ActionType.RESET, snapshot });
+        redoStack = []; // Clear the redo stack
+
+        resetScene();
+
+        console.log("Room reset successfully.");
+    }
+
+    function undo() {
+        if (undoStack.length === 0) return;
+    
+        const action = undoStack.pop();
+        redoStack.push(action);
+    
+        switch (action.type) {
+            case ActionType.MOVE:
+                action.object.position.copy(action.data.previousPosition);
+                break;
+            case ActionType.ROTATE:
+                action.object.rotation.copy(action.data.previousRotation);
+                break;
+            case ActionType.RESET:
+                restoreRoomState(action.snapshot);
+                break;
+        }
+    }
+    
+    function redo() {
+        if (redoStack.length === 0) return;
+    
+        const action = redoStack.pop();
+        undoStack.push(action);
+    
+        switch (action.type) {
+            case ActionType.MOVE:
+                action.object.position.copy(action.data.newPosition);
+                break;
+            case ActionType.ROTATE:
+                action.object.rotation.copy(action.data.newRotation);
+                break;
+            case ActionType.RESET:
+                resetScene();
+                break;
+        }
     }
 
     // Creating room
@@ -137,8 +338,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const length = parseFloat(roomLength.value) * 2;
-        const breadth = parseFloat(roomBreadth.value) * 2;
+        const length = parseFloat(roomLength.value);
+        const breadth = parseFloat(roomBreadth.value);
         console.log("Creating floor with:", length, breadth);
         createFloor(length, breadth);
     });
@@ -157,29 +358,35 @@ document.addEventListener("DOMContentLoaded", function () {
     const wallColorInput = document.getElementById("wall-color");
 
     function createFloor(roomLength, roomBreadth) {
+        const scaledLength = roomLength * 2;
+        const scaledBreadth = roomBreadth * 2;
+    
         let position = { x: 0, y: 0, z: 0 };
-        let scale = { x: roomLength, y: 1, z: roomBreadth };
-
+        let scale = { x: scaledLength, y: 1, z: scaledBreadth };
+    
         floorMesh = new THREE.Mesh(
             new THREE.BoxGeometry(1, 1, 1),
             new THREE.MeshPhongMaterial({ color: floorColorInput.value })
         );
-
+    
         floorMesh.position.set(position.x, position.y, position.z);
-        floorMesh.scale.set(scale.x, scale.y, scale.z);
+        floorMesh.scale.set(scaledLength, scale.y, scaledBreadth);
         floorMesh.castShadow = true;
         floorMesh.receiveShadow = true;
         floorMesh.userData.ground = true;
         roomCreated = true;
-
-        createWalls(roomLength, roomBreadth);
+    
+        createWalls(scaledLength, scaledBreadth);
         walls.forEach(wall => createScene.add(wall));
-        createRoomGrid(roomLength, roomBreadth);
+        createRoomGrid(scaledLength, scaledBreadth);
         createScene.add(floorMesh);
     }
 
     // Function to create walls
     function createWalls(roomLength, roomBreadth) {
+        const scaledLength = roomLength * 2;
+        const scaledBreadth = roomBreadth * 2;
+
         const baseWallColor = new THREE.Color(wallColorInput.value);
         const leftWallColor = baseWallColor.clone();
         leftWallColor.multiplyScalar(0.7);
@@ -295,167 +502,106 @@ document.addEventListener("DOMContentLoaded", function () {
         resetRoom();
     });
 
-    function showConfirmDialog(message) {
-        return new Promise((resolve) => {
-            const confirmContainer = document.querySelector(".confirm-container");
-            const confirmMessage = document.querySelector(".confirm-content");
-            const confirmYes = document.getElementById("confirmYes");
-            const confirmCancel = document.getElementById("confirmCancel");
-
-            confirmMessage.textContent = message;
-            confirmContainer.style.display = "flex";
-
-            confirmYes.onclick = () => {
-                confirmContainer.style.display = "none";
-                resolve(true);
-            };
-
-            confirmCancel.onclick = () => {
-                confirmContainer.style.display = "none";
-                resolve(false);
-            };
-        });
-    }
-
-    async function resetRoom() {
-        // Confirm reset with the user
-        const confirmReset = await showConfirmDialog("Are you sure you want to reset everything? This will remove all objects in the room.");
-        if (!confirmReset) return; // Exit if the user does not confirm the reset
-
-        // Save the current state of the scene for undo
-        const snapshot = {
-            type: 'reset',
-            floorMesh: floorMesh ? {
-                geometry: floorMesh.geometry.clone(),
-                material: floorMesh.material.clone(),
-                position: floorMesh.position.clone(),
-            } : null,
-            walls: walls.map(wall => ({
-                geometry: wall.geometry.clone(),
-                material: wall.material.clone(),
-                position: wall.position.clone(),
-                rotation: wall.rotation.clone(),
-            })),
-            draggableObjects: draggableObjects.map(obj => ({
-                geometry: obj.geometry.clone(),
-                material: obj.material.clone(),
-                position: obj.position.clone(),
-                rotation: obj.rotation.clone(),
-            })),
-            roomGrid: roomGrid ? {
-                geometry: roomGrid.geometry.clone(),
-                material: roomGrid.material.clone(),
-                position: roomGrid.position.clone(),
-            } : null,
-        };
-
-        // Remove the floor, if it exists
-        if (floorMesh) {
-            createScene.remove(floorMesh);
-            floorMesh = null;
-        }
-
-        // Remove draggable objects
-        draggableObjects.forEach(obj => {
-            createScene.remove(obj);
-        });
-        draggableObjects = [];
-
-        // Remove walls
-        walls.forEach(wall => {
-            createScene.remove(wall);
-        });
-        walls = [];
-
-        // Remove room grid
-        if (roomGrid) {
-            createScene.remove(roomGrid);
-            roomGrid = null;
-        }
-
-        // Push the snapshot to the undo stack
-        undoStack.push(snapshot);
-        redoStack = []; // Clear the redo stack
-
-        roomCreated = false;
-        console.log("Room reset successfully.");
-    }
-
     // Models import
     const loader = new GLTFLoader();
     let draggableObjects = [];
     let dragControls;
     let selectedObject = null;
 
-    async function addFurniture(modelPath, position) {
+    async function addFurniture(modelPath, position, rotation = { x: 0, y: 0, z: 0 }, isLoaded = false, scale = null) {
+        console.log("addFurniture called with isLoaded:", isLoaded); // Debugging line
+    
         if (!roomCreated) {
             await showErrorDialog("Please create a room before adding furniture.");
             return;
         }
-
+    
         loader.load(modelPath, function (gltf) {
             const model = gltf.scene;
             console.log("Model loaded:", modelPath);
-
-            const bbox = new THREE.Box3().setFromObject(model);
-            const size = bbox.getSize(new THREE.Vector3());
-            const maxSize = Math.max(size.x, size.y, size.z);
-            const scaleFactor = 4 / maxSize;
-            model.scale.set(scaleFactor, scaleFactor, scaleFactor);
-
-            const scaleMultipliers = {
-                bed: 2.5,
-                wardrobe: 2,
-                chair: 1.2,
-                lamp: 1.5,
-                carpet: 2,
-                sofa: 2.5,
-                pc: 1.5,
-                table: 1.5
-            };
-
-            for (let key in scaleMultipliers) {
-                if (modelPath.includes(key)) {
-                    model.scale.multiplyScalar(scaleMultipliers[key]);
-                    break;
+    
+            // Apply saved scale if provided
+            if (scale) {
+                model.scale.copy(scale); // Apply the saved scale
+            } else {
+                // Default scaling logic (if no scale is provided)
+                const bbox = new THREE.Box3().setFromObject(model);
+                const size = bbox.getSize(new THREE.Vector3());
+                const maxSize = Math.max(size.x, size.y, size.z);
+                const scaleFactor = 4 / maxSize;
+                model.scale.set(scaleFactor, scaleFactor, scaleFactor);
+    
+                // Apply additional scaling based on model type
+                const scaleMultipliers = {
+                    bed: 2.5,
+                    wardrobe: 2,
+                    chair: 1.2,
+                    lamp: 1.5,
+                    carpet: 2,
+                    sofa: 2.8,
+                    pc: 1.5,
+                    table: 1.5
+                };
+    
+                for (let key in scaleMultipliers) {
+                    if (modelPath.includes(key)) {
+                        model.scale.multiplyScalar(scaleMultipliers[key]);
+                        break;
+                    }
                 }
             }
-
+    
+            // Calculate the bounding box after scaling
             const scaledBbox = new THREE.Box3().setFromObject(model);
             const scaledSize = scaledBbox.getSize(new THREE.Vector3());
             const center = new THREE.Vector3();
             scaledBbox.getCenter(center);
-
+    
+            // Adjust the model's position to align with the floor
             const minY = scaledBbox.min.y; // Get lowest point of model
             model.position.sub(center); // Center the model
             model.position.y -= minY; // Align bottom to y = 0 in container
-
+    
+            // Create a container cube for the model
             const containerGeometry = new THREE.BoxGeometry(scaledSize.x, scaledSize.y, scaledSize.z);
             const containerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, visible: false });
             const containerCube = new THREE.Mesh(containerGeometry, containerMaterial);
-
+    
             containerCube.add(model);
-
-            const floorY = 2.5; // Top surface of your floor
-            containerCube.position.set(position.x, floorY + (scaledSize.y / 2), position.z); // Correct Y-position
-
+    
+            // Position the container cube
+            const floorY = 0.5; // Top surface of your floor
+            containerCube.position.set(position.x, floorY + (scaledSize.y / 2), position.z);
+            containerCube.rotation.set(rotation.x, rotation.y, rotation.z);
+    
+            // Store useful data in the container cube
             containerCube.userData.halfWidth = scaledSize.x / 2;
             containerCube.userData.halfDepth = scaledSize.z / 2;
-
+            containerCube.userData.modelPath = modelPath;
+    
+            // Enable shadows for all child meshes
             containerCube.traverse(child => {
                 if (child.isMesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
                 }
             });
-
-            // saveSnapshot();
+    
+            // Add the container cube to the scene and draggable objects list
             createScene.add(containerCube);
             draggableObjects.push(containerCube);
 
+            // Reset DragControls to include the new object
+            if (dragControls) {
+                dragControls.dispose(); // Clean up old event listeners
+            }
+            setupDragControls(); // Reinitialize with updated draggableObjects
+    
+            // Save the action to the undo stack
             undoStack.push({ type: 'add', object: containerCube });
             redoStack = [];
-
+    
+            // Mark the container cube as draggable
             containerCube.userData.draggable = true;
             containerCube.userData.name = "furniture";
         }, undefined, function (error) {
@@ -480,18 +626,22 @@ document.addEventListener("DOMContentLoaded", function () {
                 "/static/models/furnitures/table1.glb",
                 "/static/models/furnitures/table2.glb",
             ];
-            const defaultPosition = { x: 0, y: 5, z: 0 };
+            const defaultPosition = { x: 0, y: 2.5, z: 0 };
             addFurniture(furnitureModels[index], defaultPosition);
         });
     });
 
-    // Dragging setup with highlight effect
     function setupDragControls() {
+        if (dragControls) {
+            dragControls.dispose();
+        }
+
         dragControls = new DragControls(draggableObjects, createCamera, createRenderer.domElement);
 
         dragControls.addEventListener("dragstart", (event) => {
             controls.enabled = false;
             const object = event.object;
+            object.userData.previousPosition = object.position.clone();
 
             // Add outline effect
             object.traverse((child) => {
@@ -542,6 +692,7 @@ document.addEventListener("DOMContentLoaded", function () {
         dragControls.addEventListener("dragend", (event) => {
             controls.enabled = true;
             const object = event.object;
+            saveMoveAction(object, object.userData.previousPosition, object.position.clone());
 
             // Remove outline effect
             object.traverse((child) => {
@@ -609,27 +760,58 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function removeFurniture(object) {
         createScene.remove(object);
+        draggableObjects = draggableObjects.filter(obj => {
+            return !(
+                obj.userData.modelPath === object.userData.modelPath &&
+                obj.position.x === object.position.x &&
+                obj.position.z === object.position.z
+            );
+        });
         undoStack.push({ type: 'remove', object: object });
         redoStack = [];
 
         console.log("Furniture removed:", object);
     }
 
+    const stepSize = Math.PI / 8;
+
+    function snapRotation(object) {
+        let currentRotation = object.rotation.y;
+        let snappedRotation = Math.round(currentRotation / (Math.PI / 2)) * (Math.PI / 2);
+        
+        if (Math.abs(currentRotation - snappedRotation) < stepSize / 2) {
+            object.rotation.y = snappedRotation;
+        }
+    }
+
     window.addEventListener("keydown", (event) => {
         if (!selectedObject) return;
 
+        const previousRotation = selectedObject.rotation.clone();
+        const previousScale = selectedObject.scale.clone();
+
         switch (event.key) {
             case "ArrowLeft":
-                selectedObject.rotation.y -= 0.1;
+                selectedObject.rotation.y -= stepSize;
                 break;
             case "ArrowRight":
-                selectedObject.rotation.y += 0.1;
+                selectedObject.rotation.y += stepSize;
+                break;
+            case "ArrowUp":
+                selectedObject.scale.multiplyScalar(1.1);
+                saveScaleAction(selectedObject, previousScale, selectedObject.scale.clone());
+                break;
+            case "ArrowDown":
+                selectedObject.scale.multiplyScalar(0.9);
+                saveScaleAction(selectedObject, previousScale, selectedObject.scale.clone());
                 break;
             case "Delete":
                 removeFurniture(selectedObject);
                 return;
             default:
                 return;
+
+            snapRotation(selectedObject);
         }
 
         // Recalculate bounding box after rotation
@@ -654,6 +836,9 @@ document.addEventListener("DOMContentLoaded", function () {
             -halfRoomBreadth + padding + selectedObject.userData.halfDepth,
             Math.min(halfRoomBreadth - padding - selectedObject.userData.halfDepth, selectedObject.position.z)
         );
+
+        saveRotateAction(selectedObject, previousRotation, selectedObject.rotation.clone());
+
     });
 
     const undoBtn = document.getElementById("undo-btn");
@@ -663,4 +848,306 @@ document.addEventListener("DOMContentLoaded", function () {
     redoBtn.addEventListener("click", redo);
 
     animateCreate();
+
+    document.getElementById('save').addEventListener('click', async function () {
+
+        const projNameElement = document.getElementById('proj-name');
+        if (!projNameElement) {
+            console.error("Element with id 'proj-name' not found!");
+            return;
+        }
+        
+        const roomData ={
+            title: document.getElementById('proj-name').value,
+            length:  parseFloat(roomLength.value),
+            breadth: parseFloat(roomBreadth.value),
+            floor_color: floorColorInput.value,
+            wall_color: wallColorInput.value,
+            data: {
+                furniture: draggableObjects.map(obj => ({
+                    model: obj.userData.modelPath,
+                    position: { x: obj.position.x, y: obj.position.y, z: obj.position.z },
+                    rotation: { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z },
+                    scale: { x: obj.scale.x, y: obj.scale.y, z: obj.scale.z },
+                })),
+            },
+        };
+
+        const roomIdElement = document.getElementById('room-id');
+        if (!roomIdElement) {
+            console.error("Element with id 'room-id' not found!");
+            return;
+        }
+        const roomId = roomIdElement.value;
+
+        try {
+            // Send the data to the backend
+            const response = await fetch(`/save-room-design/${roomId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'), // Include CSRF token for Django
+                },
+                body: JSON.stringify(roomData),
+            });
+
+            const result = await response.json();
+            if (result.status === 'success') {
+                // Close the save popup
+                const savePopup = document.getElementById('save-popup');
+                if (savePopup) {
+                    savePopup.style.display = 'none';
+                }
+
+                const successDialog = document.getElementById('success-dialog');
+                if (successDialog) {
+                    successDialog.style.display = 'flex';
+
+                    setTimeout(() => {
+                        successDialog.style.display = 'none';
+                    }, 5000);
+                }
+            } else {
+                console.error('Error:', result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function loadRoomDesign(roomId) {
+        try {
+            const response = await fetch(`/get-room-design/${roomId}/`);
+            const result = await response.json();
+    
+            if (result.status === 'success') {
+                const roomData = result.data;
+    
+                // Validate room dimensions
+                if (typeof roomData.length !== 'number' || typeof roomData.breadth !== 'number' || roomData.length <= 0 || roomData.breadth <= 0) {
+                    console.error("Invalid room dimensions from backend:", roomData.length, roomData.breadth);
+                    return;
+                }
+    
+                // Update the UI
+                document.getElementById('proj-name').value = roomData.title || "My Room";
+                roomLength.value = roomData.length;
+                roomBreadth.value = roomData.breadth;
+                floorColorInput.value = roomData.floor_color || "#ffffff";
+                wallColorInput.value = roomData.wall_color || "#ffffff";
+                draggableObjects.forEach(obj => createScene.remove(obj));
+    
+                // Recreate the room design
+                createFloor(roomData.length, roomData.breadth);
+    
+                // Recreate the furniture
+                if (roomData.furniture && Array.isArray(roomData.furniture)) {
+                    roomData.furniture.forEach(item => {
+                        if (item.model && typeof item.model === 'string') {
+                            const rotation = item.rotation && typeof item.rotation === 'object'
+                            ? item.rotation
+                            : { x: 0, y: 0, z: 0 };
+                            addFurniture(item.model, item.position, item.rotation, true);
+                        } else {
+                            console.error("Invalid furniture item:", item);
+                        }
+                    });
+                }
+            } else {
+                console.error('Error:', result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    const roomIdElement = document.getElementById('room-id');
+    if (!roomIdElement) {
+        console.error("Element with id 'room-id' not found!");
+        return;
+    }
+    const roomId = roomIdElement.value;
+    console.log("Room ID:", roomId);
+
+    if (roomId) {
+        console.log("Loading saved room with ID:", roomId);
+        await loadRoomDesign(roomId);
+    } else {
+        console.log("No room ID found, skipping automatic loading");
+    }
+
+    document.querySelectorAll('.button').forEach(button => {
+        button.addEventListener('click', function(event) {
+            const templateId = event.target.getAttribute('data-template-id');
+            loadNewProjectUsingTemplate(templateId);
+        });
+    });
+
+    async function loadNewProjectUsingTemplate(templateId) {
+        try {
+            // Fetch the templates.json from the correct URL
+            const response = await fetch('/static/data/templates.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+    
+            const templates = await response.json();
+    
+            // Find the template based on the templateId
+            const templateData = templates.find(template => template.id === templateId);
+    
+            if (!templateData) {
+                console.error("Template not found:", templateId);
+                return;
+            }
+    
+            // Validate the room dimensions
+            if (typeof templateData.length !== 'number' || typeof templateData.breadth !== 'number' || templateData.length <= 0 || templateData.breadth <= 0) {
+                console.error("Invalid room dimensions in template:", templateData.length, templateData.breadth);
+                return;
+            }
+    
+            // Initialize the UI for the new project (based on the template)
+            document.getElementById('proj-name').value = templateData.title || "My Room";
+            roomLength.value = templateData.length;
+            roomBreadth.value = templateData.breadth;
+            floorColorInput.value = templateData.floor_color || "#ffffff";
+            wallColorInput.value = templateData.wall_color || "#ffffff";
+    
+            // Reset the scene for the new project
+            draggableObjects.forEach(obj => createScene.remove(obj));
+    
+            // Recreate the floor
+            createFloor(templateData.length, templateData.breadth);
+    
+            // Recreate the furniture
+            if (templateData.furniture && Array.isArray(templateData.furniture)) {
+                templateData.furniture.forEach(item => {
+                    if (item.model && typeof item.model === 'string') {
+                        const rotation = item.rotation && typeof item.rotation === 'object'
+                            ? item.rotation
+                            : { x: 0, y: 0, z: 0 };
+                        addFurniture(item.model, item.position, rotation, true);
+                    } else {
+                        console.error("Invalid furniture item in template:", item);
+                    }
+                });
+            }
+    
+            // Optionally, you can set additional fields for the template (like description)
+            document.getElementById('room-description').innerText = templateData.description || "No description available.";
+    
+            // Initialize the project as a new template-based project
+            templateIdInput.value = templateData.id || "1"; // Set template ID to track the template used
+        } catch (error) {
+            console.error('Error loading new project using template:', error);
+        }
+    }
+    
+    function saveCanvasAsImage() {
+        const originalSize = {
+            width: createRenderer.domElement.width,
+            height: createRenderer.domElement.height
+        };
+        
+        const scaleFactor = window.devicePixelRatio;
+        createRenderer.setSize(
+            originalSize.width * scaleFactor,
+            originalSize.height * scaleFactor,
+            false
+        );
+        
+        createRenderer.render(createScene, createCamera);
+        
+        createRenderer.domElement.toBlob(async (blob) => {
+            try {
+                createRenderer.setSize(originalSize.width, originalSize.height);
+                createRenderer.render(createScene, createCamera);
+    
+                const roomId = document.getElementById('room-id').value;
+                const response = await fetch(`/check-screenshot/${roomId}/`);
+                const result = await response.json();
+    
+                if (result.has_screenshot) {
+                    const confirmDelete = confirm("A screenshot already exists. Do you want to replace it?");
+                    if (!confirmDelete) {
+                        showNotification('Screenshot upload canceled.', 'info');
+                        return;
+                    }
+                }
+    
+                const formData = new FormData();
+                formData.append('screenshot', blob, `design_${Date.now()}.png`);
+                
+                const uploadResponse = await fetch(`/save-screenshot/${roomId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: formData,
+                });
+    
+                const uploadResult = await uploadResponse.json();
+                
+                if (uploadResult.status === 'success') {
+                    showNotification('Screenshot saved successfully!', 'success');
+                    
+                    const screenshotPreview = document.getElementById('screenshot-preview');
+                    if (screenshotPreview && uploadResult.url) {
+                        screenshotPreview.src = uploadResult.url;
+                        screenshotPreview.style.display = 'block';
+                        setTimeout(() => {
+                            screenshotPreview.style.display = 'none';
+                        }, 3500);
+                    }
+                } else {
+                    showNotification(uploadResult.message || 'Failed to save screenshot', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error saving screenshot', 'error');
+            }
+        }, 'image/png');
+    }
+    
+    // Helper function for notifications
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.style.position = 'fixed';
+        notification.style.bottom = '20px';
+        notification.style.right = '20px';
+        notification.style.padding = '10px 20px';
+        notification.style.background = type === 'error' ? '#dc3545' : '#28a745';
+        notification.style.color = 'white';
+        notification.style.borderRadius = '5px';
+        notification.style.zIndex = '1000';
+        document.body.appendChild(notification);
+    
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 3000);
+    }
+
+    document.getElementById('photo-btn').addEventListener('click', saveCanvasAsImage);
+
+    
+
 });
+

@@ -1,0 +1,323 @@
+/* community.css */
+body {
+    margin: 0;
+    background: linear-gradient(rgba(59, 9, 9, 0.868), rgba(11, 11, 62, 0.874));
+    color: #ffffff;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    min-height: 100vh;
+}
+
+.navbar {
+    z-index: 1;
+    border-bottom: 1vh solid rgb(66, 44, 80);
+    width: 100%;
+    height: 17vh;
+    position: fixed;
+    top: 0;
+    z-index: 1000;
+    background-image: linear-gradient(#d8434f34, #b94fb446);
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.left {
+    /* border: 1px solid black; */
+    width: 48vw;
+    height: 13vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.left a {
+    color: white;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: 1.2rem;
+    text-decoration: none;
+}
+
+.left a:hover {
+    color: rgb(223, 226, 255);
+    text-shadow: 1px 1px 2px black;
+}
+
+.right {
+    /* border: 1px solid black; */
+    width: 15vw;
+    height: 13vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.nav-button {
+    width: 3vw;
+    height: 3vw;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.nav-button img {
+    width: 3vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: auto;
+}
+
+.nav-button:hover {
+    background-color: rgba(255, 255, 255, 0.253);
+    border-radius: 50%;
+}
+
+.nav-button:active {
+    background-color: rgba(199, 199, 199, 0.253);
+    border-radius: 50%;
+}
+
+#profile-img:active {
+    background-color: rgb(212, 212, 212);
+}
+
+.popup {
+    display: none;
+    z-index: 10;
+    width: 30vw;
+    height: 60vh;
+    position: absolute;
+    top: 13vh;
+    right: 1vw;
+    background: linear-gradient(rgba(34, 22, 31, 0.9), rgba(22, 22, 39, 0.9));
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    flex-direction: column;
+    align-items: center;
+    /* transition: display 0.3 ease; */
+}
+
+.pop-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+
+#close-popup {
+    font-size: 1.2rem;
+    position: absolute;
+    right: 1.9vw;
+    border: none;
+    background: none;
+    color: white;
+}
+
+#close-popup:hover {
+    color: rgb(184, 184, 184);
+}
+
+.content {
+    margin-top: 19vh;
+    z-index: 0;
+    width: 100%;
+    height: auto;
+    min-height: calc(100vh - 17vh);
+    display: flex;
+    flex-direction: column;;
+}
+
+#particleCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.public-posts {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem 1rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.public-posts::-webkit-scrollbar {
+    display: none;
+}
+
+.posts-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center cards horizontally */
+    gap: 2rem;
+    padding: 1rem 0;
+}
+
+.post-card {
+    background: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    width: 80%;
+    max-width: 800px; /* Maximum card width */
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px); /* Frosted glass effect */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+.canvas-container {
+    width: 100%;
+    height: 400px;
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.room-canvas {
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.thumbnail {
+    width: 100%;
+    height: 300px;
+    background: #1a1a1a;
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.room-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.post-card:hover .room-thumbnail {
+    transform: scale(1.03);
+}
+
+.no-thumbnail {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-style: italic;
+    background: #2a2a2a;
+    border-radius: 8px 8px 0 0;
+}
+
+.post-details {
+    padding: 1.5rem;
+}
+
+.post-details h3 {
+    margin: 0 0 0.5rem;
+    color: #ffffff;
+    font-size: 1.6rem;
+}
+
+.author {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.95rem;
+    margin: 0 0 0.5rem;
+}
+
+.description {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    margin: 0 0 1.5rem;
+    line-height: 1.6;
+}
+
+.date {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.btn-view {
+    display: inline-block;
+    padding: 0.8rem 1.8rem;
+    background: rgba(0, 123, 255, 0.9);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-view:hover {
+    background: rgba(0, 86, 179, 0.9);
+    transform: translateY(-2px);
+}
+
+.no-posts {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 3rem;
+    font-size: 1.4rem;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    margin: 2rem auto;
+    width: 80%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .post-card {
+        width: 95%;
+    }
+    
+    .canvas-container {
+        height: 300px;
+    }
+    
+    .post-details h3 {
+        font-size: 1.4rem;
+    }
+    
+    .description {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        margin: 2%;
+    }
+    
+    .post-card {
+        width: 100%;
+    }
+    
+    .canvas-container {
+        height: 250px;
+    }
+}

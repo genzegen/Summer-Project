@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BYR3D | Your Project</title>
+    <title>BYR3D | {{ project_title }}</title>
     <link rel="stylesheet" href="{% static 'css/createpage.css' %}">
     <link rel="stylesheet" href="{% static "css/profile.css" %}">
     <link rel="stylesheet" href="{% static "css/alertdialogs.css" %}">
@@ -103,11 +103,12 @@
                     </a>
                 </div>
                 <div class="right">
+                    <button class="button" id="photo-btn" style="width: auto;">Save an image</i></button>
+                    <img id="screenshot-preview" alt="Room Photo Preview">
+
                     <button class="undo-redo" id="undo-btn">&#10226;</button>
                     <button class="undo-redo" id="redo-btn">&#10227;</button>
-                    <button class="nav-button" id="notification">
-                        <img src="{% static 'images/notification.png' %}" />
-                    </button>
+                    
                     <button class="nav-button" id="profile-img">
                         {% if profile.profile_picture %}
                             <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" />
@@ -141,23 +142,30 @@
                     </div>
                 {% endif %}
 
-                    <button class="button" id="save-btn">Save</button>
-                    <div class="popup" id="save-popup">
+                <button class="button" id="save-btn" style="width: 80px;">Save</button>
+                <div class="popup" id="save-popup">
                     <button id="close-save">&#10006;</button>
-                        <div class="save-content">
-                            <h1>Save your changes to this project?</h1>
-                            <label for="proj-name">Project Name</label>
-                            <input type="text" id="proj-name" placeholder="Enter project name" required>
-                            <p>Saved at <i><b>"My Projects"</b></i></p>
-                            <div class="save-options">
-                                <button class="button" id="save">Save</button>
-                                <button class="button" id="no-save">Don't Save</button>
-                                <button class="button" id="save-cancel">Cancel</button>
-                            </div>
+                    <div class="save-content">
+                        <h1>Save your changes to this project?</h1>
+                        <input type="hidden" id="room-id" value="{{ project_id }}">
+                        <label for="proj-name">Project Name</label>
+                        <input type="text" id="proj-name" value="{{ project_title }}" required>
+                        <p>Saved at <i><b>"My Projects"</b></i></p>
+                        <div class="save-options">
+                            <button class="button" id="save">Save</button>
+                            <button class="button" id="no-save">Don't Save</button>
+                            <button class="button" id="save-cancel">Cancel</button>
                         </div>
                     </div>
                 </div>
+                <div class="popup" id="success-dialog" style="display: none;">
+                    <img src="{% static "images/correct.png" %}" alt="">
+                    <div class="success-content">
+                        <p>Your project is saved!</p>
+                    </div>
+                </div>
             </div>
+        </div>
             <div class="content">
                 <div class="sidebar">
                     <div class="sidebar-content">

@@ -12,6 +12,9 @@
     <canvas id="particleCanvas"></canvas>
     <div class="main">
         <div class="top">
+            <div class="main-logo">
+                <img src="{% static 'images/logo.png' %}" style="height: 60px; width: auto;">
+            </div>
             <h1>Contact Us</h1>
         </div>
         <div class="bottom">
@@ -46,13 +49,28 @@
                 
             </div>
             <div class="right">
-                <h2>Send a message</h2>
-                <form method="post">
+                <div class="form-toggle">
+                    <button id="contactButton" class="active" onclick="toggleForm('contact')">Send a Message</button>
+                    <button id="requestButton" onclick="toggleForm('request_model')">Request a Model</button>
+                </div>
+                <form id="contactForm" method="post" class="message-form" style="display: flex;">
                     {% csrf_token %}
+                    <h2>Send a Message</h2>
+                    <input type="hidden" name="message_type" value="contact">
                     <input type="text" name="name" placeholder="Full Name" required>
                     <input type="email" name="email" placeholder="Email" required>
                     <textarea name="message" rows="4" placeholder="Enter Your Message" required></textarea>
                     <input type="submit" value="Send">
+                </form>
+                
+                <form id="requestModelForm" method="post" class="message-form" style="display:none;">
+                    {% csrf_token %}
+                    <h2>Request a Model</h2>
+                    <input type="hidden" name="message_type" value="request_model">
+                    <input type="text" name="name" placeholder="Full Name" required>
+                    <input type="email" name="email" placeholder="Email" required>
+                    <textarea name="message" rows="4" placeholder="Describe the Model You Need" required></textarea>
+                    <input type="submit" value="Request Model">
                 </form>
                 {% if messages %}
                     <div id="message-container">
@@ -73,6 +91,23 @@
                 setTimeout(() => messageContainer.remove(), 500); // Remove it from DOM
             }
         }, 3000);
+
+        function toggleForm(formType) {
+            // Hide both forms initially
+            document.getElementById('contactForm').style.display = 'none';
+            document.getElementById('requestModelForm').style.display = 'none';
+
+            // Show the selected form
+            if (formType === 'contact') {
+                document.getElementById('contactForm').style.display = 'flex';
+                document.getElementById('contactButton').classList.add('active');
+                document.getElementById('requestButton').classList.remove('active');
+            } else if (formType === 'request_model') {
+                document.getElementById('requestModelForm').style.display = 'flex';
+                document.getElementById('requestButton').classList.add('active');
+                document.getElementById('contactButton').classList.remove('active');
+            }
+        }
     </script>
     <script type="module" src="{% static 'js/home.js' %}"></script>
 </body>
