@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     controls.maxDistance = 70;
     controls.minDistance = 10;
 
+
     // Background grid
     const gridSize = 1000;
     const gridSegments = 100;
@@ -86,6 +87,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     function animateCreate() {
         requestAnimationFrame(animateCreate);
         controls.update();
+        checkCollisions();
         createRenderer.render(createScene, createCamera);
     }
 
@@ -509,7 +511,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     let selectedObject = null;
 
     async function addFurniture(modelPath, position, rotation = { x: 0, y: 0, z: 0 }, isLoaded = false, scale = null) {
-        console.log("addFurniture called with isLoaded:", isLoaded); // Debugging line
+        console.log("addFurniture called with isLoaded:", isLoaded);
     
         if (!roomCreated) {
             await showErrorDialog("Please create a room before adding furniture.");
@@ -517,95 +519,140 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     
         loader.load(modelPath, function (gltf) {
-            const model = gltf.scene;
-            console.log("Model loaded:", modelPath);
+            try {
+                const model = gltf.scene;
+                console.log("Model loaded:", modelPath);
     
-            // Apply saved scale if provided
-            if (scale) {
-                model.scale.copy(scale); // Apply the saved scale
-            } else {
-                // Default scaling logic (if no scale is provided)
-                const bbox = new THREE.Box3().setFromObject(model);
-                const size = bbox.getSize(new THREE.Vector3());
-                const maxSize = Math.max(size.x, size.y, size.z);
-                const scaleFactor = 4 / maxSize;
-                model.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                // First ensure all materials are valid
+                model.traverse(child => {
+                    if (child.isMesh) {
+                        // Fix missing or invalid materials
+                        if (!child.material || !child.material.isMaterial) {
+                            console.warn("Fixing missing material on:", child.name);
+                            child.material = new THREE.MeshStandardMaterial({
+                                color: 0x888888,
+                                roughness: 0.7,
+                                metalness: 0.3
+                            });
+                        }
+                        
+                        // Convert to StandardMaterial if needed
+                        if (!child.material.isMeshStandardMaterial) {
+                            const newMat = new THREE.MeshStandardMaterial();
+                            THREE.Material.prototype.copy.call(newMat, child.material);
+                            child.material = newMat;
+                        }
+                    }
+                });
     
-                // Apply additional scaling based on model type
-                const scaleMultipliers = {
-                    bed: 2.5,
-                    wardrobe: 2,
-                    chair: 1.2,
-                    lamp: 1.5,
-                    carpet: 2,
-                    sofa: 2.8,
-                    pc: 1.5,
-                    table: 1.5
-                };
+                // Apply saved scale if provided
+                if (scale) {
+                    model.scale.copy(scale);
+                } else {
+                    // Calculate initial scale
+                    const bbox = new THREE.Box3().setFromObject(model);
+                    const size = bbox.getSize(new THREE.Vector3());
+                    const maxSize = Math.max(size.x, size.y, size.z);
+                    let scaleFactor = 4 / maxSize;
+                    
+                    model.scale.set(scaleFactor, scaleFactor, scaleFactor);
     
-                for (let key in scaleMultipliers) {
-                    if (modelPath.includes(key)) {
-                        model.scale.multiplyScalar(scaleMultipliers[key]);
-                        break;
+                    // Apply type-specific scaling
+                    const scaleMultipliers = {
+                        bed: 2.5,
+                        wardrobe: 2,
+                        chair: 1.2,
+                        lamp: 1.5,
+                        carpet: 2,
+                        sofa: 2.8,
+                        pc: 1.5,
+                        table: 1.5
+                    };
+    
+                    for (let key in scaleMultipliers) {
+                        if (modelPath.toLowerCase().includes(key)) {
+                            const multiplier = scaleMultipliers[key];
+                            model.scale.multiplyScalar(multiplier);
+                            console.log(`Applied ${key} multiplier: ${multiplier}`);
+                            break;
+                        }
                     }
                 }
-            }
     
-            // Calculate the bounding box after scaling
-            const scaledBbox = new THREE.Box3().setFromObject(model);
-            const scaledSize = scaledBbox.getSize(new THREE.Vector3());
-            const center = new THREE.Vector3();
-            scaledBbox.getCenter(center);
+                // Calculate final bounding box
+                const scaledBbox = new THREE.Box3().setFromObject(model);
+                const scaledSize = scaledBbox.getSize(new THREE.Vector3());
+                const center = new THREE.Vector3();
+                scaledBbox.getCenter(center);
+                console.log("Final model dimensions:", scaledSize);
     
-            // Adjust the model's position to align with the floor
-            const minY = scaledBbox.min.y; // Get lowest point of model
-            model.position.sub(center); // Center the model
-            model.position.y -= minY; // Align bottom to y = 0 in container
+                // Create container (visible during debugging)
+                const containerGeometry = new THREE.BoxGeometry(scaledSize.x, scaledSize.y, scaledSize.z);
+                const containerMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xff0000, // Default color for all furniture
+                    visible: false,
+                    wireframe: false,
+                    transparent: true,
+                    opacity: 0.3
+                });
+                const containerCube = new THREE.Mesh(containerGeometry, containerMaterial);
+                
+                // Center model in container
+                model.position.sub(center);
+                containerCube.add(model);
     
-            // Create a container cube for the model
-            const containerGeometry = new THREE.BoxGeometry(scaledSize.x, scaledSize.y, scaledSize.z);
-            const containerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, visible: false });
-            const containerCube = new THREE.Mesh(containerGeometry, containerMaterial);
+                // Regular furniture placement
+                const floorY = 0.5;
+                containerCube.position.set(
+                    position.x, 
+                    floorY + (scaledSize.y / 2), 
+                    position.z
+                );
+                containerCube.rotation.set(rotation.x, rotation.y, rotation.z);
+                containerCube.userData.isWallItem = false;
     
-            containerCube.add(model);
+                // MATERIAL ADJUSTMENTS
+                model.traverse(child => {
+                    if (child.isMesh) {
+                        // Enable shadows for all
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                    }
+                });
     
-            // Position the container cube
-            const floorY = 0.5; // Top surface of your floor
-            containerCube.position.set(position.x, floorY + (scaledSize.y / 2), position.z);
-            containerCube.rotation.set(rotation.x, rotation.y, rotation.z);
+                // Store object data
+                containerCube.userData = {
+                    ...containerCube.userData,
+                    halfWidth: scaledSize.x / 2,
+                    halfDepth: scaledSize.z / 2,
+                    halfHeight: scaledSize.y / 2,
+                    modelPath: modelPath,
+                    draggable: true,
+                    originalScale: model.scale.clone() // Store original scale for reference
+                };
     
-            // Store useful data in the container cube
-            containerCube.userData.halfWidth = scaledSize.x / 2;
-            containerCube.userData.halfDepth = scaledSize.z / 2;
-            containerCube.userData.modelPath = modelPath;
+                // Add to scene
+                createScene.add(containerCube);
+                draggableObjects.push(containerCube);
     
-            // Enable shadows for all child meshes
-            containerCube.traverse(child => {
-                if (child.isMesh) {
-                    child.castShadow = true;
-                    child.receiveShadow = true;
+                // Update drag controls
+                if (dragControls) {
+                    dragControls.dispose();
                 }
-            });
+                setupDragControls();
     
-            // Add the container cube to the scene and draggable objects list
-            createScene.add(containerCube);
-            draggableObjects.push(containerCube);
-
-            // Reset DragControls to include the new object
-            if (dragControls) {
-                dragControls.dispose(); // Clean up old event listeners
+                // Add to undo stack
+                undoStack.push({ type: 'add', object: containerCube });
+                redoStack = [];
+    
+            } catch (error) {
+                console.error("Error processing model:", error);
+                showErrorDialog("Failed to load furniture model. Please try another item.");
             }
-            setupDragControls(); // Reinitialize with updated draggableObjects
     
-            // Save the action to the undo stack
-            undoStack.push({ type: 'add', object: containerCube });
-            redoStack = [];
-    
-            // Mark the container cube as draggable
-            containerCube.userData.draggable = true;
-            containerCube.userData.name = "furniture";
         }, undefined, function (error) {
             console.error("Error loading model:", error);
+            showErrorDialog("Failed to load model file. It may be corrupted or missing.");
         });
     }
 
@@ -625,79 +672,330 @@ document.addEventListener("DOMContentLoaded", async function () {
                 "/static/models/furnitures/pc.glb",
                 "/static/models/furnitures/table1.glb",
                 "/static/models/furnitures/table2.glb",
+                "/static/models/furnitures/table3.glb",
             ];
             const defaultPosition = { x: 0, y: 2.5, z: 0 };
             addFurniture(furnitureModels[index], defaultPosition);
         });
     });
 
+    // Updated window implementation with robust error handling
+    document.getElementById('window-toggle-btn').addEventListener('click', () => {
+        toggleWindows().catch(console.error);
+    });
+
+    // Enhanced window configuration
+    const WINDOW_CONFIG = {
+        scale: 3,
+        wallOffset: 0.1,          // Distance from wall surface
+        heightFromFloor: 2,        // Vertical position from floor
+        defaultWidth: 3,           // Fallback window width
+        defaultHeight: 2,          // Fallback window height
+        spacingFactor: 0.33        // Controls spacing between windows (0.25-0.4)
+    };
+
+    // Global variables
+    let windowSystemReady = false;
+    let windows = [];
+
+    // Initialize window system
+    async function initWindowSystem() {
+        try {
+            // Try loading GLB model first
+            const model = await loadWindowModel();
+            model.scale.set(WINDOW_CONFIG.scale, WINDOW_CONFIG.scale, WINDOW_CONFIG.scale);
+            model.traverse(child => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    // Enable proper transparency sorting
+                    child.material.transparent = true;
+                    child.material.depthWrite = false;
+                }
+            });
+            return model;
+        } catch (error) {
+            console.warn("Using fallback window:", error);
+            return createFallbackWindow();
+        }
+    }
+
+    // Load GLB model
+    function loadWindowModel() {
+        return new Promise((resolve, reject) => {
+            const loader = new GLTFLoader();
+            loader.load(
+                '/static/models/furnitures/window.glb',
+                gltf => resolve(gltf.scene),
+                undefined,
+                error => {
+                    console.error("Window model loading failed:", error);
+                    reject(error);
+                }
+            );
+        });
+    }
+
+    // Create simple window geometry
+    function createFallbackWindow() {
+        const group = new THREE.Group();
+        
+        // Frame
+        const frame = new THREE.Mesh(
+            new THREE.BoxGeometry(WINDOW_CONFIG.defaultWidth, WINDOW_CONFIG.defaultHeight, 0.2),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x654321,
+                roughness: 0.7,
+                metalness: 0.3
+            })
+        );
+        group.add(frame);
+        
+        // Glass
+        const glass = new THREE.Mesh(
+            new THREE.PlaneGeometry(WINDOW_CONFIG.defaultWidth - 0.2, WINDOW_CONFIG.defaultHeight - 0.2),
+            new THREE.MeshStandardMaterial({
+                color: 0x88ccff,
+                transparent: true,
+                opacity: 0.7,
+                roughness: 0.1,
+                metalness: 0.9
+            })
+        );
+        glass.position.z = -0.11;
+        group.add(glass);
+        
+        return group;
+    }
+
+    // Main toggle function
+    async function toggleWindows() {
+        if (!roomCreated) {
+            showErrorDialog("Please create a room first.");
+            return;
+        }
+
+        if (!windowSystemReady) {
+            try {
+                window.windowModel = await initWindowSystem();
+                windowSystemReady = true;
+            } catch (error) {
+                showErrorDialog("Failed to initialize window system.");
+                return;
+            }
+        }
+
+        if (windows.length > 0) {
+            removeWindows();
+        } else {
+            placeWindowsOnAllWalls();
+        }
+    }
+
+    // Place windows on all walls
+    function placeWindowsOnAllWalls() {
+        const roomDepth = parseFloat(roomBreadth.value);
+        const roomWidth = parseFloat(roomLength.value);
+        
+        // Positions for all walls [x, y, z, rotationY]
+        const positions = [
+            // Back wall (2 windows)
+            { x: -roomWidth * WINDOW_CONFIG.spacingFactor, y: WINDOW_CONFIG.heightFromFloor, z: -roomDepth - WINDOW_CONFIG.wallOffset, rotationY: 0 },
+            { x: roomWidth * WINDOW_CONFIG.spacingFactor, y: WINDOW_CONFIG.heightFromFloor, z: -roomDepth - WINDOW_CONFIG.wallOffset, rotationY: 0 },
+            
+            // Left wall (2 windows, rotated 90 degrees)
+            { x: -roomWidth - WINDOW_CONFIG.wallOffset, y: WINDOW_CONFIG.heightFromFloor, z: -roomDepth * WINDOW_CONFIG.spacingFactor, rotationY: Math.PI/2 },
+            { x: -roomWidth - WINDOW_CONFIG.wallOffset, y: WINDOW_CONFIG.heightFromFloor, z: roomDepth * WINDOW_CONFIG.spacingFactor, rotationY: Math.PI/2 },
+            
+            // Right wall (2 windows, rotated -90 degrees)
+            { x: roomWidth + WINDOW_CONFIG.wallOffset, y: WINDOW_CONFIG.heightFromFloor, z: -roomDepth * WINDOW_CONFIG.spacingFactor, rotationY: -Math.PI/2 },
+            { x: roomWidth + WINDOW_CONFIG.wallOffset, y: WINDOW_CONFIG.heightFromFloor, z: roomDepth * WINDOW_CONFIG.spacingFactor, rotationY: -Math.PI/2 }
+        ];
+
+        // Clear existing windows first
+        removeWindows();
+
+        // Create new windows
+        positions.forEach(pos => {
+            try {
+                const windowInstance = window.windowModel.clone();
+                windowInstance.position.set(pos.x, pos.y, pos.z);
+                windowInstance.rotation.y = pos.rotationY;
+                
+                // Add to scene
+                createScene.add(windowInstance);
+                windows.push(windowInstance);
+            } catch (error) {
+                console.error("Error placing window:", error);
+            }
+        });
+    }
+
+    // Cleanup function
+    function removeWindows() {
+        windows.forEach(window => {
+            try {
+                createScene.remove(window);
+            } catch (error) {
+                console.warn("Error removing window:", error);
+            }
+        });
+        windows = [];
+    }
+
+    // Initialize on DOM ready
+    document.addEventListener("DOMContentLoaded", () => {
+        // Initialize window system after scene is ready
+        setTimeout(() => initWindowSystem().catch(console.error), 1000);
+    });
+
+    function checkCollisions() {
+        let collisionDetected = false;
+        
+        // Reset all object colors first
+        draggableObjects.forEach(obj => {
+            obj.traverse(child => {
+                if (child.isMesh && child.userData.originalMaterial) {
+                    child.material = child.userData.originalMaterial;
+                    child.userData.isColliding = false;
+                }
+            });
+        });
+
+        // Check each pair of objects
+        for (let i = 0; i < draggableObjects.length; i++) {
+            for (let j = i + 1; j < draggableObjects.length; j++) {
+                const obj1 = draggableObjects[i];
+                const obj2 = draggableObjects[j];
+                
+                if (obj1.userData.isWallItem || obj2.userData.isWallItem) continue;
+                
+                const box1 = new THREE.Box3().setFromObject(obj1);
+                const box2 = new THREE.Box3().setFromObject(obj2);
+                
+                if (box1.intersectsBox(box2)) {
+                    collisionDetected = true;
+                    
+                    // Store original material if not already stored
+                    obj1.traverse(child => {
+                        if (child.isMesh && !child.userData.originalMaterial) {
+                            child.userData.originalMaterial = child.material.clone();
+                        }
+                    });
+                    
+                    obj2.traverse(child => {
+                        if (child.isMesh && !child.userData.originalMaterial) {
+                            child.userData.originalMaterial = child.material.clone();
+                        }
+                    });
+                    
+                    // Change to red material
+                    const redMaterial = new THREE.MeshStandardMaterial({ 
+                        color: 0xff0000,
+                        roughness: 0.7,
+                        metalness: 0.3
+                    });
+                    
+                    obj1.traverse(child => {
+                        if (child.isMesh) {
+                            child.material = redMaterial;
+                            child.userData.isColliding = true;
+                        }
+                    });
+                    
+                    obj2.traverse(child => {
+                        if (child.isMesh) {
+                            child.material = redMaterial;
+                            child.userData.isColliding = true;
+                        }
+                    });
+                }
+            }
+        }
+        
+        return collisionDetected;
+    }
+
+    function hasCollisions() {
+        return draggableObjects.some(obj => {
+            let colliding = false;
+            obj.traverse(child => {
+                if (child.userData.isColliding) colliding = true;
+            });
+            return colliding;
+        });
+    }
+
     function setupDragControls() {
         if (dragControls) {
             dragControls.dispose();
         }
-
+    
         dragControls = new DragControls(draggableObjects, createCamera, createRenderer.domElement);
-
+    
         dragControls.addEventListener("dragstart", (event) => {
             controls.enabled = false;
             const object = event.object;
             object.userData.previousPosition = object.position.clone();
-
+    
             // Add outline effect
             object.traverse((child) => {
                 if (child.isMesh) {
                     child.material.emissive = new THREE.Color(0x00ff00); // Green highlight
                 }
             });
-
         });
-
+    
         dragControls.addEventListener("drag", (event) => {
-            let object = event.object;
-
-            // Get the half dimensions of the room
+            const object = event.object;
             const halfRoomLength = parseFloat(roomLength.value);
             const halfRoomBreadth = parseFloat(roomBreadth.value);
             const padding = 0.3;
-
-            // Recalculate bounding box dynamically
+    
+            // Recalculate bounding box
             const bbox = new THREE.Box3().setFromObject(object);
             const size = bbox.getSize(new THREE.Vector3());
-
-            const halfWidth = size.x / 2;
-            const halfDepth = size.z / 2;
-            const halfHeight = size.y / 2;
-
-            // Update userData for consistent constraints
-            object.userData.halfWidth = halfWidth;
-            object.userData.halfDepth = halfDepth;
-            object.userData.halfHeight = halfHeight;
-
-            // Constrain movement within room boundaries
+            
+            // Update dimensions
+            object.userData.halfWidth = size.x / 2;
+            object.userData.halfHeight = size.y / 2;
+            object.userData.halfDepth = size.z / 2;
+    
+            // Apply X and Z constraints (same for all objects)
             object.position.x = Math.max(
-                -halfRoomLength + padding + halfWidth,
-                Math.min(halfRoomLength - padding - halfWidth, object.position.x)
+                -halfRoomLength + padding + object.userData.halfWidth,
+                Math.min(halfRoomLength - padding - object.userData.halfWidth, object.position.x)
             );
-
+    
             object.position.z = Math.max(
-                -halfRoomBreadth + padding + halfDepth,
-                Math.min(halfRoomBreadth - padding - halfDepth, object.position.z)
+                -halfRoomBreadth + padding + object.userData.halfDepth,
+                Math.min(halfRoomBreadth - padding - object.userData.halfDepth, object.position.z)
             );
-
-            // Ensure furniture stays on top of the floor
-            const floorY = 0.5; // Adjust if needed
-            object.position.y = floorY + halfHeight;
+    
+            // Apply Y constraints (different for windows vs furniture)
+            if (object.userData.isWindow) {
+                // Window-specific Y constraints (height)
+                const minHeight = 0.5 + object.userData.halfHeight; // Just above floor
+                const maxHeight = roomHeight - object.userData.halfHeight - 0.5; // Just below ceiling
+                object.position.y = Math.max(minHeight, Math.min(maxHeight, object.position.y));
+            } else {
+                // Furniture Y position (fixed to floor)
+                const floorY = 0.5;
+                object.position.y = floorY + object.userData.halfHeight;
+            }
         });
-
+    
         dragControls.addEventListener("dragend", (event) => {
             controls.enabled = true;
             const object = event.object;
+            
+            // No special window alignment needed since they move freely in X/Z
             saveMoveAction(object, object.userData.previousPosition, object.position.clone());
-
+    
             // Remove outline effect
             object.traverse((child) => {
                 if (child.isMesh) {
-                    child.material.emissive = new THREE.Color(0x000000); // Reset to normal
+                    child.material.emissive = new THREE.Color(0x000000);
                 }
             });
         });
@@ -850,6 +1148,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     animateCreate();
 
     document.getElementById('save').addEventListener('click', async function () {
+        if (hasCollisions()) {
+            showErrorDialog("Cannot save! There are furniture items that are colliding!");
+            return;
+        }
 
         const projNameElement = document.getElementById('proj-name');
         if (!projNameElement) {

@@ -65,6 +65,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const colorBtn = document.getElementById("color-btn");
     const colorDropdown = document.getElementById("color-dropdown");
 
+    const windowBtn = document.getElementById("window-btn");
+    const windowDropdown = document.getElementById("window-dropdown");
+
     // Dropdown Toggle Function
     function toggleDropdown(button, dropdown) {
         const isActive = dropdown.classList.contains("show");
@@ -90,6 +93,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         colorDropdown.classList.remove("show");
         colorBtn.classList.remove("active");
+
+        windowDropdown.classList.remove("show");
+        windowBtn.classList.remove("active");
     }
 
     // Button Click Events
@@ -113,6 +119,11 @@ document.addEventListener("DOMContentLoaded", function () {
         toggleDropdown(colorBtn, colorDropdown);
     });
 
+    windowBtn.addEventListener("click", function (event) {
+        event.stopPropagation();
+        toggleDropdown(windowBtn, windowDropdown);
+    });
+
     // Close dropdowns when clicking outside
     window.addEventListener("click", function (event) {
         if (
@@ -123,7 +134,9 @@ document.addEventListener("DOMContentLoaded", function () {
             !gridBtn.contains(event.target) &&
             !gridDropdown.contains(event.target) &&
             !colorBtn.contains(event.target) &&
-            !colorDropdown.contains(event.target)
+            !colorDropdown.contains(event.target) &&
+            !windowBtn.contains(event.target) &&
+            !windowDropdown.contains(event.target)
         ) {
             closeAllDropdowns();
         }
