@@ -35,8 +35,8 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/dailysip.git
-cd dailysip
+git clone https://github.com/genzegen/dailysip.git
+cd Summer-Project
 ```
 
 ### 2. Set Up the Backend
@@ -50,24 +50,8 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-### 3. Set Up the Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-### 4. Visit the App
+### 3. Visit the App
 
 Go to [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
-
-## Future Improvements
-
-* Add product listing pages with filters and categories
-* Implement shopping cart and checkout process
-* Integrate payment gateways
-* Add data analytics
-* Improve product data fetching and state management with Redux or Context API
