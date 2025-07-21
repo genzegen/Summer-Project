@@ -17,13 +17,11 @@
 
 ### Frontend
 
-* React.js (Functional Components & Hooks)
-* Axios (API calls)
+* HTML, CSS, and Javascript
 
 ### Backend
 
 * Django
-* Django REST Framework (API)
 
 ### Development Tools
 
