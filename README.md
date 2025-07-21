@@ -6,11 +6,10 @@
 
 ## Features
 
-* **Responsive Design:** Mobile-friendly layout with accessible navigation.
-* **Reusable Components:** Modular React components for easy maintenance and extension.
-* **Dynamic Scroll-Based Animations:** Utilizes Intersection Observer and scroll events to animate content visibility.
-* **Backend Powered by Django:** Robust API layer for handling product data and future extensibility.
-* **Easy to Extend:** Foundation ready for adding cart, checkout, authentication, and payment integrations.
+* **Reusable Components:** Modular components for easy maintenance and extension.
+* **Dynamic Mouse-mmovement Animations:** Utilizes THREE.js and scroll events to animate interactive background.
+* **Backend Powered by Django:** Robust API layer for handling room data and future extensibility.
+* **Easy to Extend:** Foundation ready for adding project, screenshots, authentication, and posting in community.
 
 ---
 
